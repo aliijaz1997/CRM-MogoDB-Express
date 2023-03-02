@@ -16,15 +16,18 @@ import { AuthContext } from "../src/context/authContext";
 import { useRouter } from "next/router";
 import Copyright from "../src/components/copyRight";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "../src/store/store";
 
 interface RegisterProps {}
 
 const Register: RegisterProps = () => {
   const { currentUser, register } = React.useContext(AuthContext);
   const router = useRouter();
+  const token = useSelector<RootState>((state) => state.auth.token);
 
   React.useEffect(() => {
-    if (currentUser) {
+    if (token) {
       router.push("/");
     }
   }, [currentUser, router]);

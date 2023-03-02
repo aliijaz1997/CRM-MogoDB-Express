@@ -17,16 +17,19 @@ import { AuthContext } from "../src/context/authContext";
 import { useRouter } from "next/router";
 import Copyright from "../src/components/copyRight";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "../src/store/store";
 
 interface LoginProps {}
 
 const Login: LoginProps = () => {
   const { currentUser, login } = React.useContext(AuthContext);
   const router = useRouter();
+  const token = useSelector<RootState>((state) => state.auth.token);
 
   React.useEffect(() => {
     // checks if the user is authenticated
-    currentUser ? router.push("/") : router.push("/login");
+    token ? router.push("/") : router.push("/login");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 

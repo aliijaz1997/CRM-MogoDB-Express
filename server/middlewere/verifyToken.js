@@ -12,12 +12,12 @@ const VerifyToken = async (req, res, next) => {
         if (user) {
           return next();
         } else {
-          throw new Error("Authentication Failed");
+          res.status(401).json("Authentication failed");
         }
       }
     }
   } catch (e) {
-    throw new Error(`Internal Server Error ${e}`);
+    res.status(401).json("Authentication failed");
   }
 };
 

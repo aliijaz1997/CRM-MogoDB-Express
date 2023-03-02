@@ -1,32 +1,29 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { UserType } from "../../types";
-import { BaseUrl } from "../../utils/baseUrl";
+import { baseQueryWithReauth } from "../common/baseQuery";
 
 export const apiSlice = createApi({
   reducerPath: "apiSlice",
-  baseQuery: fetchBaseQuery({
-    baseUrl: BaseUrl,
-  }),
-  tagTypes: ["Users"],
+  baseQuery: baseQueryWithReauth,
+  tagTypes: ["Users", "User"],
   endpoints: (builder) => ({
-    getUsers: builder.query<UserType[], { token: string }>({
-      query: ({ token }) => {
+    getUsers: builder.query<UserType[], any>({
+      query: () => {
         return {
           url: `user`,
           method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
         };
       },
       providesTags: ["Users"],
     }),
-    getUserById: builder.query<UserType, { id: string; token: string }>({
-      query: ({ id, token }) => {
+    getUserById: builder.query<UserType, { id: string }>({
+      query: ({ id }) => {
         return {
           url: `user/${id}`,
           method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
         };
       },
+      providesTags: ["User"],
     }),
     addUser: builder.mutation<
       any,
@@ -37,21 +34,39 @@ export const apiSlice = createApi({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["User"],
     }),
-    deleteUser: builder.mutation<any, { id: string; token: string }>({
-      query: ({ id, token }) => ({
+    updateUser: builder.mutation<any, { body: Partial<UserType> }>({
+      query: ({ body }) => ({
+        url: `user`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User", "Users"],
+    }),
+    deleteUser: builder.mutation<any, { id: string }>({
+      query: (body) => ({
         url: `user`,
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-        body: { id },
+        body,
       }),
       invalidatesTags: ["Users"],
+    }),
+    temporaryAuth: builder.mutation<{ token: string }, { id: string }>({
+      query: (body) => ({
+        url: `user/auth`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["User"],
     }),
   }),
 });
 export const {
   useAddUserMutation,
-  useGetUsersQuery,
   useGetUserByIdQuery,
+  useGetUsersQuery,
   useDeleteUserMutation,
+  useUpdateUserMutation,
+  useTemporaryAuthMutation,
 } = apiSlice;

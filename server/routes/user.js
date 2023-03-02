@@ -34,15 +34,47 @@ router.route("/").post((req, res) => {
     .catch((err) => res.status(400).json("Error Occurred is " + err));
 });
 
+router.route("/").put((req, res) => {
+  const { name, _id: id, role } = req.body;
+
+  if (role && id) {
+    User.updateOne({ _id: id }, { role })
+      .then(() => {
+        return res.status(204).json("User updated Successfully");
+      })
+      .catch((err) => res.status(400).json("Error Occurred is " + err));
+  }
+
+  if (id && name) {
+    User.updateOne({ _id: id }, { name })
+      .then(() => {
+        auth.updateUser(id, { displayName: name });
+        return res.status(204).json("User updated Successfully");
+      })
+      .catch((err) => res.status(400).json("Error Occurred is " + err));
+  }
+
+  return new Error("Unable to update user");
+});
+
 router.route("/").delete((req, res) => {
   const id = req.body.id;
-  console.log("Deleting start", id);
   User.deleteOne({ _id: id })
     .then(() => {
       auth.deleteUser(id);
       return res.status(204).json("User deleted Successfully");
     })
     .catch((err) => res.status(400).json("Error Occurred is " + err));
+});
+
+router.route("/auth").post((req, res) => {
+  const id = req.body.id;
+  auth
+    .createCustomToken(id, { loginType: "Custom Login from admin" })
+    .then((token) => {
+      console.log({ token });
+      return res.status(201).json({ token });
+    });
 });
 
 module.exports = router;

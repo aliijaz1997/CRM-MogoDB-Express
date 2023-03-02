@@ -6,18 +6,30 @@ import { Box, Card, Typography } from "@mui/material";
 import { AuthContext } from "../src/context/authContext";
 import { useRouter } from "next/router";
 import { useGetUserByIdQuery } from "../src/store/services/api";
+import Loader from "../src/components/loader";
+import { useSelector } from "react-redux";
+import { RootState } from "../src/store/store";
 
 export default function Home() {
   const router = useRouter();
-  const { currentUser, idToken: token } = React.useContext(AuthContext);
-  const { data: user } = useGetUserByIdQuery({
+  const { currentUser } = React.useContext(AuthContext);
+  const token = useSelector<RootState>((state) => state.auth.token);
+  const {
+    data: user,
+    isError,
+    isLoading,
+  } = useGetUserByIdQuery({
     id: currentUser?.uid as string,
-    token,
   });
+
   React.useEffect(() => {
-    currentUser ? router.push("/") : router.push("/login");
+    token ? router.push("/") : router.push("/login");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
+
+  if (isError || isLoading || !user) {
+    return <Loader />;
+  }
 
   return (
     <>
@@ -41,14 +53,14 @@ export default function Home() {
           <Box
             sx={{ margin: "auto", padding: "10% 35% 10% 15%", color: "white" }}
           >
-            <Box sx={{ fontSize: "96px" }}>
+            <Box sx={{ fontSize: { xs: "36px", md: "76px" } }}>
               Welcome,
-              <span style={{ color: "brown" }}>{currentUser?.displayName}</span>
+              <span style={{ color: "brown" }}>{user.name}</span>
             </Box>
 
             <Box sx={{ fontSize: "36px" }}>
               This is the Content Management System and here's some content. You
-              role is <span style={{ color: "brown" }}>{user?.role}</span> and
+              role is <span style={{ color: "brown" }}>{user.role}</span> and
               email is{" "}
               <span style={{ color: "brown" }}>{currentUser?.email}</span>
             </Box>

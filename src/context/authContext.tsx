@@ -1,6 +1,7 @@
 import React from "react";
 import {
   createUserWithEmailAndPassword,
+  signInWithCustomToken,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -11,10 +12,12 @@ import auth from "../utils/firebase";
 import { toast } from "react-toastify";
 import { useAddUserMutation } from "../store/services/api";
 import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import { loginRedux, logoutRedux } from "../store/slice/auth.slice";
+import { localStorageService } from "../utils/localStorageService";
 
 interface AuthContextProps {
   currentUser?: User | null;
-  idToken: string;
   login: (email: string, password: string) => Promise<UserCredential>;
   register: (
     email: string,
@@ -23,6 +26,7 @@ interface AuthContextProps {
     role: string
   ) => void;
   logout: () => void;
+  CustomSignIn: (token: string) => void;
 }
 
 const AuthContext = React.createContext({} as AuthContextProps);
@@ -33,9 +37,11 @@ interface AuthProviderInterface {
 }
 const AuthProvider = ({ children }: AuthProviderInterface) => {
   const [currentUser, setCurrentUser] = React.useState<User | null>();
-  const [idToken, setIdToken] = React.useState<string>("");
+
+  const dispatch = useDispatch();
   const [addUser] = useAddUserMutation();
   const router = useRouter();
+
   function register(
     email: string,
     password: string,
@@ -73,6 +79,15 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
       router.push("/login");
       toast.success("Logout successfully!");
       setCurrentUser(null);
+      dispatch(logoutRedux());
+    });
+  }
+
+  function CustomSignIn(token: string) {
+    signInWithCustomToken(auth, token).then((res) => {
+      console.log({ res });
+      router.push("/");
+      localStorageService.setAdminToken(token);
     });
   }
 
@@ -81,7 +96,7 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
       if (user) {
         setCurrentUser(user);
         user.getIdToken().then((token) => {
-          setIdToken(token);
+          dispatch(loginRedux(token));
         });
       }
     });
@@ -91,10 +106,10 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
 
   const value = {
     currentUser,
-    idToken,
     login,
     logout,
     register,
+    CustomSignIn,
   };
 
   return <Provider value={value}>{children}</Provider>;

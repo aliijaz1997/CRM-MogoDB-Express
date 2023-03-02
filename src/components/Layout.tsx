@@ -13,10 +13,9 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 export default function Layout(props: LayoutProps) {
-  const { logout, idToken: token, currentUser } = React.useContext(AuthContext);
+  const { logout, currentUser } = React.useContext(AuthContext);
   const { data: user } = useGetUserByIdQuery({
     id: currentUser?.uid as string,
-    token,
   });
   const router = useRouter();
   const showLayout =
