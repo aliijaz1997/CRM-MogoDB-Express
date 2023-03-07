@@ -69,12 +69,9 @@ router.route("/").delete((req, res) => {
 
 router.route("/auth").post((req, res) => {
   const id = req.body.id;
-  auth
-    .createCustomToken(id, { loginType: "Custom Login from admin" })
-    .then((token) => {
-      console.log({ token });
-      return res.status(201).json({ token });
-    });
+  auth.createCustomToken(id).then((token) => {
+    return res.status(201).json({ token });
+  });
 });
 
 module.exports = router;

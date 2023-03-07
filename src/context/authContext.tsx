@@ -84,11 +84,13 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
   }
 
   function CustomSignIn(token: string) {
-    signInWithCustomToken(auth, token).then((res) => {
-      console.log({ res });
-      router.push("/");
-      localStorageService.setAdminToken(token);
-    });
+    signInWithCustomToken(auth, token)
+      .then((res) => {
+        toast.success("You have been successfully logged in");
+      })
+      .catch((err) => {
+        toast.error(`Error Occurred: ${err}`);
+      });
   }
 
   React.useEffect(() => {

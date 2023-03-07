@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   Table,
   TableHead,
@@ -7,66 +7,71 @@ import {
   TableBody,
   Button,
   TableContainer,
-  Box,
+  IconButton,
 } from "@mui/material";
 import {
   useDeleteUserMutation,
-  useGetUsersQuery,
   useTemporaryAuthMutation,
 } from "../store/services/api";
-import Loader from "./loader";
-import { UserRole, UserType } from "../types";
+import { UserType } from "../types";
 import { toast } from "react-toastify";
 import UpdateUserModal from "./updateModal";
-import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
 import { AuthContext } from "../context/authContext";
+import { localStorageService } from "../utils/localStorageService";
+import { Login } from "@mui/icons-material";
+import { useRouter } from "next/router";
 
-interface UsersTableProps {}
+interface UsersTableProps {
+  usersList: UserType[];
+}
 
 const columns = ["Name", "Email", "Role", "Action"];
 
-function UsersTable({}: UsersTableProps) {
+function UsersTable({ usersList }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
-  const token = useSelector<RootState>((state) => state.auth.token);
 
+  const router = useRouter();
   const { CustomSignIn } = useContext(AuthContext);
 
-  const {
-    data: usersList,
-    isError,
-    isLoading,
-  } = useGetUsersQuery({ token: token as string });
   const [deleteUser] = useDeleteUserMutation();
   const [temporaryAuth] = useTemporaryAuthMutation();
 
-  if (isError || isLoading) {
-    return <Loader />;
-  }
+  const adminUser = useMemo(() => {
+    return usersList?.find((user) => user.name === "Admin") ?? ({} as UserType);
+  }, [usersList]);
 
   const StyledCell = ({ name, id }: { name: string; id?: string }) => {
     return (
-      <TableCell sx={{ color: "white" }} align="right">
+      <TableCell align="left">
         {name}
         {id && (
-          <Box
+          <IconButton
+            color="success"
             onClick={() => {
+              localStorageService.setAdminToken(adminUser._id);
               temporaryAuth({ id }).then((res: any) => {
                 const token = res?.data.token;
                 CustomSignIn(token);
+                router.push("/");
               });
             }}
           >
-            Login with this email
-          </Box>
+            <Login />
+          </IconButton>
         )}
       </TableCell>
     );
   };
 
   return (
-    <TableContainer>
+    <TableContainer
+      sx={{
+        backgroundColor: "gainsboro",
+        boxShadow: "0px 0px 3px 3px lightGray",
+        borderRadius: "20px",
+      }}
+    >
       {selectedUser && (
         <UpdateUserModal
           user={selectedUser}
@@ -75,16 +80,10 @@ function UsersTable({}: UsersTableProps) {
         />
       )}
       <Table stickyHeader aria-label="sticky table">
-        <TableHead
-          sx={{
-            "& th": {
-              backgroundColor: "gray",
-            },
-          }}
-        >
+        <TableHead>
           <TableRow>
             {columns.map((column) => (
-              <TableCell key={column} align="right" style={{ minWidth: 150 }}>
+              <TableCell key={column} align="left" style={{ minWidth: 150 }}>
                 {column}
               </TableCell>
             ))}
@@ -94,26 +93,31 @@ function UsersTable({}: UsersTableProps) {
           {usersList &&
             usersList.map((user) => {
               return (
-                <TableRow
-                  key={user._id}
-                  sx={{ bgcolor: "#485263" }}
-                  role="checkbox"
-                  tabIndex={-1}
-                >
+                <TableRow key={user._id} role="checkbox" tabIndex={-1}>
                   <StyledCell name={user.name} />
                   <StyledCell
                     name={user.email}
                     id={user.role !== "admin" ? user._id : undefined}
                   />
                   <StyledCell name={user.role} />
-                  <TableCell
-                    sx={{ display: "flex", justifyContent: "flex-end" }}
-                  >
+                  <TableCell sx={{ display: "flex", p: "21px" }}>
                     <Button
-                      disabled={user.role === UserRole.Admin}
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={() => {
+                        setModalOpen(true);
+                        setSelectedUser(user);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      disabled={user.name === "Admin"}
                       variant="contained"
                       color="secondary"
                       size="small"
+                      sx={{ ml: "5px" }}
                       onClick={() => {
                         deleteUser({ id: user._id })
                           .then(() => {
@@ -125,18 +129,6 @@ function UsersTable({}: UsersTableProps) {
                       }}
                     >
                       Delete
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      size="small"
-                      sx={{ ml: "5px" }}
-                      onClick={() => {
-                        setModalOpen(true);
-                        setSelectedUser(user);
-                      }}
-                    >
-                      Edit
                     </Button>
                   </TableCell>
                 </TableRow>

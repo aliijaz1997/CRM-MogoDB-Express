@@ -1,7 +1,6 @@
 import React from "react";
-
 import Head from "next/head";
-import { Box, Card, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 
 import { AuthContext } from "../src/context/authContext";
 import { useRouter } from "next/router";
@@ -9,6 +8,7 @@ import { useGetUserByIdQuery } from "../src/store/services/api";
 import Loader from "../src/components/loader";
 import { useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
+import { UserRole } from "../src/types";
 
 export default function Home() {
   const router = useRouter();
@@ -23,9 +23,13 @@ export default function Home() {
   });
 
   React.useEffect(() => {
-    token ? router.push("/") : router.push("/login");
+    token
+      ? user?.role === UserRole.Admin
+        ? router.push("/admin")
+        : router.push("/")
+      : router.push("/login");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, user]);
 
   if (isError || isLoading || !user) {
     return <Loader />;
@@ -40,33 +44,7 @@ export default function Home() {
         <link rel="icon" href="/vercel.svg" />
       </Head>
       <main>
-        <Box
-          sx={{
-            backgroundColor: "#4f4e4b",
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
-            position: "absolute",
-            height: "100%",
-            width: "100%",
-          }}
-        >
-          <Box
-            sx={{ margin: "auto", padding: "10% 35% 10% 15%", color: "white" }}
-          >
-            <Box sx={{ fontSize: { xs: "36px", md: "76px" } }}>
-              Welcome,
-              <span style={{ color: "brown" }}>{user.name}</span>
-            </Box>
-
-            <Box sx={{ fontSize: "36px" }}>
-              This is the Content Management System and here's some content. You
-              role is <span style={{ color: "brown" }}>{user.role}</span> and
-              email is{" "}
-              <span style={{ color: "brown" }}>{currentUser?.email}</span>
-            </Box>
-            <br />
-          </Box>
-        </Box>
+        <Box>I am {user.name}</Box>
       </main>
     </>
   );

@@ -19,6 +19,8 @@ import Copyright from "../src/components/copyRight";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
+import { useGetUserByIdQuery } from "../src/store/services/api";
+import { UserRole } from "../src/types";
 
 interface LoginProps {}
 
@@ -27,11 +29,18 @@ const Login: LoginProps = () => {
   const router = useRouter();
   const token = useSelector<RootState>((state) => state.auth.token);
 
+  const { data: user } = useGetUserByIdQuery({
+    id: currentUser?.uid as string,
+  });
+
   React.useEffect(() => {
-    // checks if the user is authenticated
-    token ? router.push("/") : router.push("/login");
+    token
+      ? user?.role === UserRole.Admin
+        ? router.push("/admin")
+        : router.push("/")
+      : router.push("/login");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, user]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
