@@ -1,42 +1,45 @@
 import React from "react";
 import UsersTable from "../../src/components/usersTable";
-import { Box, MenuItem, TextField } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import { useGetUsersQuery } from "../../src/store/services/api";
 import Loader from "../../src/components/loader";
-import { UserType } from "../../src/types";
 
-const filters = ["name", "role", "email"];
+interface SearchType {
+  name: string;
+  email: string;
+  role: string;
+}
 export default function ManageUsers() {
-  const [search, setSearch] = React.useState("");
-  const [filter, setFilter] = React.useState("none");
+  const [search, setSearch] = React.useState<SearchType>({
+    name: "",
+    email: "",
+    role: "",
+  });
 
   const { data: usersList, isError, isLoading } = useGetUsersQuery({});
 
   const handleOnchangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
-  const handleChangeFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilter(e.target.value);
+    setSearch({ ...search, [e.target.name]: e.target.value });
   };
 
   if (isError || isLoading || !usersList?.length) return <Loader />;
 
   const filteredUsers = () => {
-    if (!search.length) return usersList;
-    if (filter !== "none") {
-      return usersList.filter((u) => {
-        console.log(u[filter as keyof UserType], search);
-        return u[filter as keyof UserType]
-          .toLowerCase()
-          .includes(search.toLowerCase());
-      });
-    }
-    return usersList.filter(
-      (u) =>
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase()) ||
-        u.role.toLowerCase().includes(search.toLowerCase())
-    );
+    if (!search.name && !search.email && !search.role) return usersList;
+
+    const users = usersList.filter((u) => {
+      const nameMatch =
+        !search.name ||
+        u.name.toLowerCase().includes(search.name.toLowerCase());
+      const emailMatch =
+        !search.email ||
+        u.email.toLowerCase().includes(search.email.toLowerCase());
+      const roleMatch =
+        !search.role ||
+        u.role.toLowerCase().includes(search.role.toLowerCase());
+      return nameMatch && emailMatch && roleMatch;
+    });
+    return users;
   };
 
   return (
@@ -50,29 +53,32 @@ export default function ManageUsers() {
         }}
       >
         <TextField
-          label="Search for the user"
+          label="Search user by name"
+          name="name"
           variant="outlined"
-          value={search}
+          value={search?.name}
           color="primary"
           onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
         />
         <TextField
-          value={filter}
-          label="Filter"
-          color="primary"
+          label="Search user by email"
+          name="email"
           variant="outlined"
-          select
-          onChange={handleChangeFilter}
+          value={search?.email}
+          color="primary"
+          onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
-        >
-          <MenuItem value="none">None</MenuItem>
-          {filters.map((f) => (
-            <MenuItem key={f} value={f}>
-              {f}
-            </MenuItem>
-          ))}
-        </TextField>
+        />
+        <TextField
+          label="Search user by role"
+          name="role"
+          variant="outlined"
+          value={search?.role}
+          color="primary"
+          onChange={handleOnchangeInput}
+          sx={{ m: "2px" }}
+        />
       </Box>
       <UsersTable usersList={filteredUsers()} />
     </Box>

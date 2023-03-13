@@ -36,6 +36,7 @@ import Dashboard from "@mui/icons-material/Dashboard";
 import { UserRole } from "../types";
 import { localStorageService } from "../utils/localStorageService";
 import { toast } from "react-toastify";
+import Loader from "./loader";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -49,7 +50,11 @@ export default function Layout(props: LayoutProps) {
   const router = useRouter();
 
   const { CustomSignIn, logout, currentUser } = React.useContext(AuthContext);
-  const { data: user } = useGetUserByIdQuery({
+  const {
+    data: user,
+    isError,
+    isLoading,
+  } = useGetUserByIdQuery({
     id: currentUser?.uid as string,
   });
   const [temporaryAuth] = useTemporaryAuthMutation();
@@ -58,6 +63,10 @@ export default function Layout(props: LayoutProps) {
     router.pathname.includes("/login") || router.pathname.includes("/register")
       ? false
       : true;
+
+  if (isError || isLoading || !user) {
+    return <Loader />;
+  }
 
   return showLayout ? (
     <Box sx={{ display: "flex" }}>
@@ -180,7 +189,22 @@ export default function Layout(props: LayoutProps) {
         <Toolbar />
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           {props.children}
-          <Copyright sx={{ pt: 4 }} />
+          <Box
+            component="footer"
+            sx={{
+              py: 6,
+            }}
+          >
+            <Container maxWidth="lg">
+              <Typography variant="h6" align="center" gutterBottom>
+                CRM (Client Relation Management)
+              </Typography>
+              <Typography variant="subtitle1" align="center" component="p">
+                All copy rights are reserved for this web app
+              </Typography>
+              <Copyright />
+            </Container>
+          </Box>
         </Container>
       </Box>
     </Box>
