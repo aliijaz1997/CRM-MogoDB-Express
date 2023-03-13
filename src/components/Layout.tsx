@@ -114,7 +114,7 @@ export default function Layout(props: LayoutProps) {
             px: [1],
           }}
         >
-          <IconButton onClick={toggleDrawer}>
+          <IconButton color="primary" onClick={toggleDrawer}>
             <ChevronLeft />
           </IconButton>
         </Toolbar>
@@ -130,9 +130,9 @@ export default function Layout(props: LayoutProps) {
             }}
           >
             <ListItemIcon>
-              <Dashboard />
+              <Dashboard color="primary" />
             </ListItemIcon>
-            <ListItemText primary="Dashboard" />
+            <ListItemText sx={{ color: "#6a1b9a" }} primary="Dashboard" />
           </ListItemButton>
           {user?.role === UserRole.Admin && (
             <ListItemButton
@@ -141,9 +141,9 @@ export default function Layout(props: LayoutProps) {
               }}
             >
               <ListItemIcon>
-                <ManageAccounts />
+                <ManageAccounts color="primary" />
               </ListItemIcon>
-              <ListItemText primary="Manage" />
+              <ListItemText sx={{ color: "#6a1b9a" }} primary="Users" />
             </ListItemButton>
           )}
           <Divider sx={{ my: 1 }} />
@@ -152,9 +152,9 @@ export default function Layout(props: LayoutProps) {
           </ListSubheader>
           <ListItemButton onClick={logout}>
             <ListItemIcon>
-              <Logout />
+              <Logout color="secondary" />
             </ListItemIcon>
-            <ListItemText primary="Log Out" />
+            <ListItemText sx={{ color: "#d32f2f" }} primary="Log Out" />
           </ListItemButton>
           {adminToken && (
             <ListItemButton

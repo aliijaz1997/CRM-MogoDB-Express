@@ -39,6 +39,7 @@ export default function ManageUsers() {
         u.role.toLowerCase().includes(search.role.toLowerCase());
       return nameMatch && emailMatch && roleMatch;
     });
+
     return users;
   };
 

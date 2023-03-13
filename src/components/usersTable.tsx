@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableHead,
@@ -8,6 +8,8 @@ import {
   Button,
   TableContainer,
   IconButton,
+  Pagination,
+  Box,
 } from "@mui/material";
 import {
   useDeleteUserMutation,
@@ -18,24 +20,62 @@ import { toast } from "react-toastify";
 import UpdateUserModal from "./updateModal";
 import { AuthContext } from "../context/authContext";
 import { localStorageService } from "../utils/localStorageService";
-import { Login } from "@mui/icons-material";
+import { ImportExport, Login } from "@mui/icons-material";
 import { useRouter } from "next/router";
 
 interface UsersTableProps {
   usersList: UserType[];
 }
 
+type SortOrder = "asc" | "desc";
+
+type SortBy = keyof Omit<UserType, "_id">;
+
 const columns = ["Name", "Email", "Role", "Action"];
 
 function UsersTable({ usersList }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [sortBy, setSortBy] = useState<SortBy>("role");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const itemsPerPage = 5;
+
+  const displayedUsers = useMemo(() => {
+    const totalPages = Math.ceil(usersList.length / itemsPerPage);
+    setTotalPages(totalPages);
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return [...usersList]
+      .sort((a, b) => {
+        const sortValue = sortOrder === "asc" ? 1 : -1;
+        if (a[sortBy] < b[sortBy]) {
+          return -sortValue;
+        }
+        if (a[sortBy] > b[sortBy]) {
+          return sortValue;
+        }
+        return 0;
+      })
+      .slice(startIndex, endIndex);
+  }, [totalPages, itemsPerPage, currentPage, usersList]);
 
   const router = useRouter();
   const { CustomSignIn } = useContext(AuthContext);
 
   const [deleteUser] = useDeleteUserMutation();
   const [temporaryAuth] = useTemporaryAuthMutation();
+
+  const handleSort = (selectedSortBy: SortBy) => {
+    if (selectedSortBy === sortBy) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(selectedSortBy);
+      setSortOrder("asc");
+    }
+  };
 
   const adminUser = useMemo(() => {
     return usersList?.find((user) => user.name === "Admin") ?? ({} as UserType);
@@ -65,78 +105,111 @@ function UsersTable({ usersList }: UsersTableProps) {
   };
 
   return (
-    <TableContainer
+    <Box
       sx={{
-        backgroundColor: "gainsboro",
-        boxShadow: "0px 0px 3px 3px lightGray",
-        borderRadius: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}
     >
-      {selectedUser && (
-        <UpdateUserModal
-          user={selectedUser}
-          open={modalOpen}
-          setOpen={setModalOpen}
+      <TableContainer
+        sx={{
+          backgroundColor: "#E6E6FA",
+          boxShadow: "0px 0px 3px 3px lightGray",
+          borderRadius: "20px",
+        }}
+      >
+        {selectedUser && (
+          <UpdateUserModal
+            user={selectedUser}
+            open={modalOpen}
+            setOpen={setModalOpen}
+          />
+        )}
+        <Table stickyHeader aria-label="sticky table">
+          <TableHead>
+            <TableRow>
+              {columns.map((column) => (
+                <TableCell
+                  key={column}
+                  align="left"
+                  sx={{ minWidth: 150, bgcolor: "#6a1b9a", color: "white" }}
+                >
+                  {column}
+                  {column !== "Action" && (
+                    <IconButton
+                      onClick={() => {
+                        handleSort(column.toLowerCase() as SortBy);
+                      }}
+                      sx={{ color: "white" }}
+                    >
+                      <ImportExport />
+                    </IconButton>
+                  )}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {displayedUsers &&
+              displayedUsers.map((user) => {
+                return (
+                  <TableRow key={user._id} role="checkbox" tabIndex={-1}>
+                    <StyledCell name={user.name} />
+                    <StyledCell
+                      name={user.email}
+                      id={user.role !== "admin" ? user._id : undefined}
+                    />
+                    <StyledCell name={user.role} />
+                    <TableCell sx={{ display: "flex", p: "21px" }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => {
+                          setModalOpen(true);
+                          setSelectedUser(user);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        disabled={user.name === "Admin"}
+                        variant="contained"
+                        color="secondary"
+                        size="small"
+                        sx={{ ml: "5px" }}
+                        onClick={() => {
+                          deleteUser({ id: user._id })
+                            .then(() => {
+                              toast.success("User deleted Successfully");
+                            })
+                            .catch((e) => {
+                              toast.error(`Error Occurred: ${e}`);
+                            });
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Box sx={{ m: "10px", bgcolor: "#E6E6FA", borderRadius: "10px" }}>
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={(_e, page) => {
+            setCurrentPage(page);
+          }}
+          showFirstButton
+          showLastButton
         />
-      )}
-      <Table stickyHeader aria-label="sticky table">
-        <TableHead>
-          <TableRow>
-            {columns.map((column) => (
-              <TableCell key={column} align="left" style={{ minWidth: 150 }}>
-                {column}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {usersList &&
-            usersList.map((user) => {
-              return (
-                <TableRow key={user._id} role="checkbox" tabIndex={-1}>
-                  <StyledCell name={user.name} />
-                  <StyledCell
-                    name={user.email}
-                    id={user.role !== "admin" ? user._id : undefined}
-                  />
-                  <StyledCell name={user.role} />
-                  <TableCell sx={{ display: "flex", p: "21px" }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                      onClick={() => {
-                        setModalOpen(true);
-                        setSelectedUser(user);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      disabled={user.name === "Admin"}
-                      variant="contained"
-                      color="secondary"
-                      size="small"
-                      sx={{ ml: "5px" }}
-                      onClick={() => {
-                        deleteUser({ id: user._id })
-                          .then(() => {
-                            toast.success("User deleted Successfully");
-                          })
-                          .catch((e) => {
-                            toast.error(`Error Occurred: ${e}`);
-                          });
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+      </Box>
+    </Box>
   );
 }
 

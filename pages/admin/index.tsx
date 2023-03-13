@@ -16,7 +16,7 @@ export default function HomeAdmin() {
               display: "flex",
               flexDirection: "column",
               height: 240,
-              backgroundColor: "beige",
+              backgroundColor: "aliceblue",
             }}
           >
             <Chart />
@@ -42,7 +42,7 @@ export default function HomeAdmin() {
               p: 2,
               display: "flex",
               flexDirection: "column",
-              backgroundColor: "lightGrey",
+              backgroundColor: "#E6E6FA",
             }}
           >
             <Orders />
