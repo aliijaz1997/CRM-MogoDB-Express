@@ -4,21 +4,25 @@ import {
   useGetUserByIdQuery,
   useUpdateUserMutation,
 } from "../../store/services/api";
-import { AuthContext } from "../../context/authContext";
 import { toast } from "react-toastify";
+import { AuthContext } from "../../context/authContext";
+import { canThisRoleEdit } from "../../helper/roleAuthor";
 
 interface NameField {
   id: string;
   userName: string;
+  userRole: string;
 }
-export default function NameField({ id, userName }: NameField) {
+export default function NameField({ id, userName, userRole }: NameField) {
   const [name, setName] = useState(userName);
   const [canEdit, setCanEdit] = useState(false);
 
+  const { currentUserRole } = useContext(AuthContext);
+
+  const [updateUser] = useUpdateUserMutation();
   const { data: user } = useGetUserByIdQuery({
     id,
   });
-  const [updateUser] = useUpdateUserMutation();
   return (
     <Box sx={{ m: "10px" }}>
       {canEdit ? (
@@ -28,7 +32,16 @@ export default function NameField({ id, userName }: NameField) {
             setName(e.target.value);
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && name !== userName) {
+              const allowRoleEdit = canThisRoleEdit({
+                role: currentUserRole,
+                roleToEdit: userRole,
+              });
+              if (!allowRoleEdit) {
+                setName(userName);
+                return;
+              }
+
               updateUser({ body: { _id: id, name } })
                 .then(() => {
                   toast.success("User updated Successfully");
@@ -36,17 +49,29 @@ export default function NameField({ id, userName }: NameField) {
                 .catch((err) => {
                   toast.error(`Error Occurred: ${err}`);
                 });
+
               setCanEdit(false);
             }
           }}
           onBlur={() => {
-            updateUser({ body: { _id: id, name } })
-              .then(() => {
-                toast.success("User updated Successfully");
-              })
-              .catch((err) => {
-                toast.error(`Error Occurred: ${err}`);
+            if (name !== userName) {
+              const allowRoleEdit = canThisRoleEdit({
+                role: currentUserRole,
+                roleToEdit: userRole,
               });
+
+              if (!allowRoleEdit) {
+                setName(userName);
+                return;
+              }
+              updateUser({ body: { _id: id, name } })
+                .then(() => {
+                  toast.success("User updated Successfully");
+                })
+                .catch((err) => {
+                  toast.error(`Error Occurred: ${err}`);
+                });
+            }
             setCanEdit(false);
           }}
         />

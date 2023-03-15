@@ -125,6 +125,28 @@ const Register: RegisterProps = () => {
             >
               Admin
             </MenuItem>
+            <MenuItem
+              sx={{
+                "&:hover": {
+                  color: "#4F45F6",
+                  backgroundColor: "#D8D6FD",
+                },
+              }}
+              value="staff"
+            >
+              Staff
+            </MenuItem>
+            <MenuItem
+              sx={{
+                "&:hover": {
+                  color: "#4F45F6",
+                  backgroundColor: "#D8D6FD",
+                },
+              }}
+              value="manager"
+            >
+              Manager
+            </MenuItem>
           </TextField>
           <Button
             type="submit"

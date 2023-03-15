@@ -6,6 +6,8 @@ export interface UserType {
 }
 
 export enum UserRole {
-  Client = "client",
   Admin = "admin",
+  Client = "client",
+  Manager = "manager",
+  Staff = "staff",
 }

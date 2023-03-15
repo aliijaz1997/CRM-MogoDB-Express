@@ -50,7 +50,7 @@ export default function UpdateUserModal({
           User details
         </Typography>
         <Box sx={{ display: "flex", m: "10px" }}>
-          <NameField id={user._id} userName={user.name} />
+          <NameField id={user._id} userName={user.name} userRole={user.role} />
           <TextField
             sx={{ m: "10px" }}
             value={user.email}
@@ -58,7 +58,7 @@ export default function UpdateUserModal({
           />
         </Box>
         <Box sx={{ display: "flex" }}>
-          <RoleField id={user._id} />
+          <RoleField id={user._id} userRole={user.role} />
         </Box>
       </Box>
     </Modal>

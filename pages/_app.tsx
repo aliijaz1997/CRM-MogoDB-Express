@@ -5,7 +5,7 @@ import { Provider } from "react-redux";
 import { store } from "../src/store/store";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
-import Layout from "../src/components/Layout";
+import Layout from "../src/components/Layout/MainLayout";
 import ThemeProvider from "@mui/material/styles/ThemeProvider";
 import { CustomTheme } from "../src/utils/theme";
 

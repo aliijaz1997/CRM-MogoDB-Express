@@ -27,6 +27,8 @@ interface AuthContextProps {
   ) => void;
   logout: () => void;
   CustomSignIn: (token: string) => void;
+  currentUserRole: string;
+  setCurrentUserRole: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AuthContext = React.createContext({} as AuthContextProps);
@@ -37,7 +39,7 @@ interface AuthProviderInterface {
 }
 const AuthProvider = ({ children }: AuthProviderInterface) => {
   const [currentUser, setCurrentUser] = React.useState<User | null>();
-
+  const [currentUserRole, setCurrentUserRole] = React.useState("");
   const dispatch = useDispatch();
   const [addUser] = useAddUserMutation();
   const router = useRouter();
@@ -108,10 +110,12 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
 
   const value = {
     currentUser,
+    currentUserRole,
     login,
     logout,
     register,
     CustomSignIn,
+    setCurrentUserRole,
   };
 
   return <Provider value={value}>{children}</Provider>;

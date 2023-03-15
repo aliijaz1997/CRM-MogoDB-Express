@@ -1,8 +1,7 @@
-import * as React from "react";
+import React from "react";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { useRouter } from "next/router";
 import {
   Badge,
   Container,
@@ -16,7 +15,7 @@ import {
   ListSubheader,
   styled,
 } from "@mui/material";
-import { AuthContext } from "../context/authContext";
+import { AuthContext } from "../../context/authContext";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -30,13 +29,14 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import {
   useGetUserByIdQuery,
   useTemporaryAuthMutation,
-} from "../store/services/api";
-import Copyright from "./copyRight";
+} from "../../store/services/api";
+import Copyright from "../copyRight";
 import Dashboard from "@mui/icons-material/Dashboard";
-import { UserRole } from "../types";
-import { localStorageService } from "../utils/localStorageService";
+import { UserRole } from "../../types";
+import { localStorageService } from "../../utils/localStorageService";
 import { toast } from "react-toastify";
-import Loader from "./loader";
+import Loader from "../loader";
+import { useRouter } from "next/router";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -59,16 +59,10 @@ export default function Layout(props: LayoutProps) {
   });
   const [temporaryAuth] = useTemporaryAuthMutation();
 
-  const showLayout =
-    router.pathname.includes("/login") || router.pathname.includes("/register")
-      ? false
-      : true;
-
   if (isError || isLoading || !user) {
     return <Loader />;
   }
-
-  return showLayout ? (
+  return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
       <AppBar position="absolute" open={open}>
@@ -134,7 +128,7 @@ export default function Layout(props: LayoutProps) {
             </ListItemIcon>
             <ListItemText sx={{ color: "#6a1b9a" }} primary="Dashboard" />
           </ListItemButton>
-          {user?.role === UserRole.Admin && (
+          {user?.role !== UserRole.Client && (
             <ListItemButton
               onClick={() => {
                 router.push("/admin/manage");
@@ -208,8 +202,6 @@ export default function Layout(props: LayoutProps) {
         </Container>
       </Box>
     </Box>
-  ) : (
-    <React.Fragment>{props.children}</React.Fragment>
   );
 }
 

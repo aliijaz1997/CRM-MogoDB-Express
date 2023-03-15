@@ -12,7 +12,7 @@ import { UserRole } from "../src/types";
 
 export default function Home() {
   const router = useRouter();
-  const { currentUser } = React.useContext(AuthContext);
+  const { currentUser, setCurrentUserRole } = React.useContext(AuthContext);
   const token = useSelector<RootState>((state) => state.auth.token);
   const {
     data: user,
@@ -23,8 +23,11 @@ export default function Home() {
   });
 
   React.useEffect(() => {
+    if (user) {
+      setCurrentUserRole(user.role);
+    }
     token
-      ? user?.role === UserRole.Admin
+      ? user?.role !== UserRole.Client
         ? router.push("/admin")
         : router.push("/")
       : router.push("/login");
