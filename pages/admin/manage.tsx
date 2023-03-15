@@ -4,7 +4,7 @@ import { Box, TextField } from "@mui/material";
 import { useGetUsersQuery } from "../../src/store/services/api";
 import Loader from "../../src/components/loader";
 
-interface SearchType {
+export interface SearchType {
   name: string;
   email: string;
   role: string;
@@ -23,25 +23,6 @@ export default function ManageUsers() {
   };
 
   if (isError || isLoading || !usersList?.length) return <Loader />;
-
-  const filteredUsers = () => {
-    if (!search.name && !search.email && !search.role) return usersList;
-
-    const users = usersList.filter((u) => {
-      const nameMatch =
-        !search.name ||
-        u.name.toLowerCase().includes(search.name.toLowerCase());
-      const emailMatch =
-        !search.email ||
-        u.email.toLowerCase().includes(search.email.toLowerCase());
-      const roleMatch =
-        !search.role ||
-        u.role.toLowerCase().includes(search.role.toLowerCase());
-      return nameMatch && emailMatch && roleMatch;
-    });
-
-    return users;
-  };
 
   return (
     <Box>
@@ -81,7 +62,7 @@ export default function ManageUsers() {
           sx={{ m: "2px" }}
         />
       </Box>
-      <UsersTable usersList={filteredUsers()} />
+      <UsersTable usersList={usersList} search={search} />
     </Box>
   );
 }

@@ -22,9 +22,11 @@ import { AuthContext } from "../context/authContext";
 import { localStorageService } from "../utils/localStorageService";
 import { ImportExport, Login } from "@mui/icons-material";
 import { useRouter } from "next/router";
+import { SearchType } from "../../pages/admin/manage";
 
 interface UsersTableProps {
   usersList: UserType[];
+  search: SearchType;
 }
 
 type SortOrder = "asc" | "desc";
@@ -33,7 +35,7 @@ type SortBy = keyof Omit<UserType, "_id">;
 
 const columns = ["Name", "Email", "Role", "Action"];
 
-function UsersTable({ usersList }: UsersTableProps) {
+function UsersTable({ usersList, search }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("role");
@@ -49,6 +51,7 @@ function UsersTable({ usersList }: UsersTableProps) {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return [...usersList]
+      .slice(startIndex, endIndex)
       .sort((a, b) => {
         const sortValue = sortOrder === "asc" ? 1 : -1;
         if (a[sortBy] < b[sortBy]) {
@@ -59,8 +62,19 @@ function UsersTable({ usersList }: UsersTableProps) {
         }
         return 0;
       })
-      .slice(startIndex, endIndex);
-  }, [totalPages, itemsPerPage, currentPage, usersList]);
+      .filter((u) => {
+        const nameMatch =
+          !search.name ||
+          u.name.toLowerCase().includes(search.name.toLowerCase());
+        const emailMatch =
+          !search.email ||
+          u.email.toLowerCase().includes(search.email.toLowerCase());
+        const roleMatch =
+          !search.role ||
+          u.role.toLowerCase().includes(search.role.toLowerCase());
+        return nameMatch && emailMatch && roleMatch;
+      });
+  }, [totalPages, itemsPerPage, currentPage, usersList, sortOrder, search]);
 
   const router = useRouter();
   const { CustomSignIn } = useContext(AuthContext);
