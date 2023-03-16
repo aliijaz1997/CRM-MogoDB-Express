@@ -12,7 +12,7 @@ import { UserRole } from "../src/types";
 
 export default function Home() {
   const router = useRouter();
-  const { currentUser, setCurrentUserRole } = React.useContext(AuthContext);
+  const { currentUser } = React.useContext(AuthContext);
   const token = useSelector<RootState>((state) => state.auth.token);
   const {
     data: user,
@@ -21,18 +21,16 @@ export default function Home() {
   } = useGetUserByIdQuery({
     id: currentUser?.uid as string,
   });
-
   React.useEffect(() => {
     if (user) {
-      setCurrentUserRole(user.role);
+      token
+        ? user.role !== UserRole.Client
+          ? router.push("/admin")
+          : router.push("/")
+        : router.push("/login");
     }
-    token
-      ? user?.role !== UserRole.Client
-        ? router.push("/admin")
-        : router.push("/")
-      : router.push("/login");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, user]);
+  }, [currentUser, user?.role]);
 
   if (isError || isLoading || !user) {
     return <Loader />;

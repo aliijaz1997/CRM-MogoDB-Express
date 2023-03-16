@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const userRouter = require("./routes/user");
+const notificationRouter = require("./routes/notification");
 const VerifyToken = require("./middlewere/verifyToken");
 require("dotenv").config();
 
@@ -19,6 +20,7 @@ mongooseConnection.once("open", () => {
   console.log("MongoDB Connected Successfully!");
 });
 app.use("/user", VerifyToken, userRouter);
+app.use("/notification", VerifyToken, notificationRouter);
 
 app.listen(port, () => {
   console.log(

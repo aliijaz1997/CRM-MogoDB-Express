@@ -1,10 +1,41 @@
 import { Box, Grid, Paper } from "@mui/material";
+import { useRouter } from "next/router";
 import React from "react";
+import { useSelector } from "react-redux";
 import Chart from "../../src/components/Dashboard/chart";
 import Deposits from "../../src/components/Dashboard/deposit";
 import Orders from "../../src/components/Dashboard/orders";
+import Loader from "../../src/components/loader";
+import { AuthContext } from "../../src/context/authContext";
+import { useGetUserByIdQuery } from "../../src/store/services/api";
+import { RootState } from "../../src/store/store";
+import { UserRole } from "../../src/types";
 
 export default function HomeAdmin() {
+  const router = useRouter();
+  const { currentUser } = React.useContext(AuthContext);
+  const token = useSelector<RootState>((state) => state.auth.token);
+  const {
+    data: user,
+    isError,
+    isLoading,
+  } = useGetUserByIdQuery({
+    id: currentUser?.uid as string,
+  });
+  React.useEffect(() => {
+    if (user) {
+      token
+        ? user.role !== UserRole.Client
+          ? router.push("/admin")
+          : router.push("/")
+        : router.push("/login");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, user?.role]);
+
+  if (isError || isLoading || !user) {
+    return <Loader />;
+  }
   return (
     <Box>
       <Grid container spacing={3}>

@@ -35,7 +35,7 @@ const Login: LoginProps = () => {
 
   React.useEffect(() => {
     token
-      ? user?.role === UserRole.Admin
+      ? user?.role !== UserRole.Client
         ? router.push("/admin")
         : router.push("/")
       : router.push("/login");

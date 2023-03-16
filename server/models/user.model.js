@@ -11,6 +11,13 @@ const userSchema = new Schema({
     enum: ["client", "admin", "manager", "staff"],
     default: "client",
   },
+  addedBy: {
+    type: {
+      name: String,
+      role: String,
+    },
+    required: false,
+  },
 });
 
 const User = mongoose.model("User", userSchema);

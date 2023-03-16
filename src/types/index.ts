@@ -3,6 +3,10 @@ export interface UserType {
   name: string;
   email: string;
   role: UserRole;
+  addedBy: {
+    name: string;
+    role: UserRole;
+  };
 }
 
 export enum UserRole {
@@ -10,4 +14,9 @@ export enum UserRole {
   Client = "client",
   Manager = "manager",
   Staff = "staff",
+}
+
+export interface Notification {
+  _id: string;
+  description: string;
 }

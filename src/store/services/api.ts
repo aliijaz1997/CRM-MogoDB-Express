@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { UserType } from "../../types";
+import { Notification, UserType } from "../../types";
 import { baseQueryWithReauth } from "../common/baseQuery";
 
 export const apiSlice = createApi({
@@ -27,14 +27,20 @@ export const apiSlice = createApi({
     }),
     addUser: builder.mutation<
       any,
-      { id: string; name: string; email: string; role: string }
+      {
+        id?: string;
+        name: string;
+        email: string;
+        role: string;
+        addedBy?: { name: string; role: string };
+      }
     >({
       query: (body) => ({
         url: `user`,
         method: "POST",
         body,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Users"],
     }),
     updateUser: builder.mutation<any, { body: Partial<UserType> }>({
       query: ({ body }) => ({
@@ -60,6 +66,15 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    getNotifications: builder.query<Notification[], null>({
+      query: () => {
+        return {
+          url: `notification`,
+          method: "GET",
+        };
+      },
+      providesTags: ["Users", "User"],
+    }),
   }),
 });
 export const {
@@ -69,4 +84,5 @@ export const {
   useDeleteUserMutation,
   useUpdateUserMutation,
   useTemporaryAuthMutation,
+  useGetNotificationsQuery,
 } = apiSlice;

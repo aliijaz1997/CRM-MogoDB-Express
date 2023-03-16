@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   Table,
   TableHead,
@@ -14,15 +14,16 @@ import {
 import {
   useDeleteUserMutation,
   useTemporaryAuthMutation,
-} from "../store/services/api";
-import { UserType } from "../types";
+} from "../../store/services/api";
+import { UserType } from "../../types";
 import { toast } from "react-toastify";
-import UpdateUserModal from "./updateModal";
-import { AuthContext } from "../context/authContext";
-import { localStorageService } from "../utils/localStorageService";
-import { ImportExport, Login } from "@mui/icons-material";
+import UpdateUserModal from "../Modals/updateModal";
+import { AuthContext } from "../../context/authContext";
+import { localStorageService } from "../../utils/localStorageService";
+import { Add, ImportExport, Login } from "@mui/icons-material";
 import { useRouter } from "next/router";
-import { SearchType } from "../../pages/admin/manage";
+import { SearchType } from "../../../pages/admin/manage";
+import AddUserModal from "../Modals/addUserModal";
 
 interface UsersTableProps {
   usersList: UserType[];
@@ -33,10 +34,11 @@ type SortOrder = "asc" | "desc";
 
 type SortBy = keyof Omit<UserType, "_id">;
 
-const columns = ["Name", "Email", "Role", "Action"];
+const columns = ["Name", "Email", "Added By", "Action"];
 
-function UsersTable({ usersList, search }: UsersTableProps) {
+function CLientTable({ usersList, search }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("role");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -44,6 +46,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const itemsPerPage = 5;
 
+  const { currentUser } = useContext(AuthContext);
   const displayedUsers = useMemo(() => {
     const totalPages = Math.ceil(usersList.length / itemsPerPage);
     setTotalPages(totalPages);
@@ -69,10 +72,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
         const emailMatch =
           !search.email ||
           u.email.toLowerCase().includes(search.email.toLowerCase());
-        const roleMatch =
-          !search.role ||
-          u.role.toLowerCase().includes(search.role.toLowerCase());
-        return nameMatch && emailMatch && roleMatch;
+        return nameMatch && emailMatch;
       });
   }, [totalPages, itemsPerPage, currentPage, usersList, sortOrder, search]);
 
@@ -91,24 +91,30 @@ function UsersTable({ usersList, search }: UsersTableProps) {
     }
   };
 
-  const adminUser = useMemo(() => {
-    return usersList?.find((user) => user.name === "Admin") ?? ({} as UserType);
-  }, [usersList]);
-
-  const StyledCell = ({ name, id }: { name: string; id?: string }) => {
+  const StyledCell = ({
+    name,
+    id,
+    role,
+  }: {
+    name: string;
+    id?: string;
+    role?: string;
+  }) => {
     return (
       <TableCell align="left">
-        {name}
+        {name} {role ? `(${role})` : null}
         {id && (
           <IconButton
             color="success"
             onClick={() => {
-              localStorageService.setAdminToken(adminUser._id);
-              temporaryAuth({ id }).then((res: any) => {
-                const token = res?.data.token;
-                CustomSignIn(token);
-                router.push("/");
-              });
+              if (currentUser) {
+                localStorageService.setAdminToken(currentUser.uid);
+                temporaryAuth({ id }).then((res: any) => {
+                  const token = res?.data.token;
+                  CustomSignIn(token);
+                  router.push("/");
+                });
+              }
             }}
           >
             <Login />
@@ -140,6 +146,12 @@ function UsersTable({ usersList, search }: UsersTableProps) {
             setOpen={setModalOpen}
           />
         )}
+        <AddUserModal
+          open={addModalOpen}
+          onClose={() => {
+            setAddModalOpen(false);
+          }}
+        />
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
@@ -150,7 +162,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                   sx={{ minWidth: 150, bgcolor: "#6a1b9a", color: "white" }}
                 >
                   {column}
-                  {column !== "Action" && (
+                  {column !== "Action" && column !== "Added By" && (
                     <IconButton
                       onClick={() => {
                         handleSort(column.toLowerCase() as SortBy);
@@ -162,6 +174,16 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                   )}
                 </TableCell>
               ))}
+              <TableCell sx={{ bgcolor: "#6a1b9a", width: 30 }}>
+                <IconButton
+                  onClick={() => {
+                    setAddModalOpen(true);
+                  }}
+                  sx={{ color: "white" }}
+                >
+                  <Add />
+                </IconButton>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -174,7 +196,14 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                       name={user.email}
                       id={user.role !== "admin" ? user._id : undefined}
                     />
-                    <StyledCell name={user.role} />
+                    {user.addedBy ? (
+                      <StyledCell
+                        name={user.addedBy.name}
+                        role={user.addedBy.role}
+                      />
+                    ) : (
+                      <StyledCell name="Self" />
+                    )}
                     <TableCell sx={{ display: "flex", p: "21px" }}>
                       <Button
                         variant="contained"
@@ -227,4 +256,4 @@ function UsersTable({ usersList, search }: UsersTableProps) {
   );
 }
 
-export default UsersTable;
+export default CLientTable;

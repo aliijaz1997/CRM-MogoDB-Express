@@ -21,6 +21,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import {
   ChevronLeft,
+  GroupAdd,
   Logout,
   ManageAccounts,
   RotateLeft,
@@ -37,12 +38,20 @@ import { localStorageService } from "../../utils/localStorageService";
 import { toast } from "react-toastify";
 import Loader from "../loader";
 import { useRouter } from "next/router";
+import NotificationDropDown from "../Notifications/notification";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 export default function Layout(props: LayoutProps) {
   const [open, setOpen] = React.useState(true);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
+    null
+  );
+
+  const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
   const toggleDrawer = () => {
     setOpen(!open);
   };
@@ -58,7 +67,6 @@ export default function Layout(props: LayoutProps) {
     id: currentUser?.uid as string,
   });
   const [temporaryAuth] = useTemporaryAuthMutation();
-
   if (isError || isLoading || !user) {
     return <Loader />;
   }
@@ -93,7 +101,11 @@ export default function Layout(props: LayoutProps) {
             Client Management System
           </Typography>
           <IconButton color="inherit">
-            <Badge badgeContent={4} color="secondary">
+            <Badge
+              badgeContent={4}
+              color="secondary"
+              onClick={handlePopoverOpen}
+            >
               <NotificationsIcon />
             </Badge>
           </IconButton>
@@ -131,6 +143,18 @@ export default function Layout(props: LayoutProps) {
           {user?.role !== UserRole.Client && (
             <ListItemButton
               onClick={() => {
+                router.push("/client");
+              }}
+            >
+              <ListItemIcon>
+                <GroupAdd color="primary" />
+              </ListItemIcon>
+              <ListItemText sx={{ color: "#6a1b9a" }} primary="Clients" />
+            </ListItemButton>
+          )}
+          {user?.role !== UserRole.Client && (
+            <ListItemButton
+              onClick={() => {
                 router.push("/admin/manage");
               }}
             >
@@ -158,12 +182,12 @@ export default function Layout(props: LayoutProps) {
                   .then((res: any) => {
                     const token = res?.data.token;
                     CustomSignIn(token);
-                    router.push("/admin/manage");
+                    router.push("/client");
                   })
                   .then(() => {
                     localStorageService.removeAdminToken();
                   })
-                  .catch((err) => {
+                  .catch((err: any) => {
                     toast.error(`Error Occurred: ${err}`);
                   });
               }}
@@ -181,6 +205,7 @@ export default function Layout(props: LayoutProps) {
         sx={{ flexGrow: 1, height: "100vh", overflowX: "auto" }}
       >
         <Toolbar />
+        <NotificationDropDown anchorEl={anchorEl} setAnchorEl={setAnchorEl} />
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           {props.children}
           <Box

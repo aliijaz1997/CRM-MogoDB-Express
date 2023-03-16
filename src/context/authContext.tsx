@@ -10,25 +10,24 @@ import {
 } from "firebase/auth";
 import auth from "../utils/firebase";
 import { toast } from "react-toastify";
-import { useAddUserMutation } from "../store/services/api";
+import { useAddUserMutation, useGetUserByIdQuery } from "../store/services/api";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import { loginRedux, logoutRedux } from "../store/slice/auth.slice";
-import { localStorageService } from "../utils/localStorageService";
+import { UserRole, UserType } from "../types";
 
 interface AuthContextProps {
   currentUser?: User | null;
+  user?: UserType;
   login: (email: string, password: string) => Promise<UserCredential>;
-  register: (
-    email: string,
-    password: string,
-    name: string,
-    role: string
-  ) => void;
+  register: (props: {
+    email: string;
+    password: string;
+    name: string;
+    role: string;
+  }) => void;
   logout: () => void;
   CustomSignIn: (token: string) => void;
-  currentUserRole: string;
-  setCurrentUserRole: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AuthContext = React.createContext({} as AuthContextProps);
@@ -39,17 +38,25 @@ interface AuthProviderInterface {
 }
 const AuthProvider = ({ children }: AuthProviderInterface) => {
   const [currentUser, setCurrentUser] = React.useState<User | null>();
-  const [currentUserRole, setCurrentUserRole] = React.useState("");
+
   const dispatch = useDispatch();
+  const { data: user } = useGetUserByIdQuery({
+    id: currentUser?.uid as string,
+  });
   const [addUser] = useAddUserMutation();
   const router = useRouter();
 
-  function register(
-    email: string,
-    password: string,
-    name: string,
-    role: string
-  ) {
+  function register({
+    email,
+    name,
+    role,
+    password,
+  }: {
+    email: string;
+    password: string;
+    name: string;
+    role: string;
+  }) {
     return createUserWithEmailAndPassword(auth, email, password)
       .then((res) => {
         const user = res.user;
@@ -110,12 +117,11 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
 
   const value = {
     currentUser,
-    currentUserRole,
+    user,
     login,
     logout,
     register,
     CustomSignIn,
-    setCurrentUserRole,
   };
 
   return <Provider value={value}>{children}</Provider>;

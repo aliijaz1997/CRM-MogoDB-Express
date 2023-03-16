@@ -2,10 +2,10 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import { UserType } from "../types";
-import NameField from "./Description/name";
-import { MenuItem, TextField } from "@mui/material";
-import RoleField from "./Description/role";
+import { UserType } from "../../types";
+import NameField from "../Description/name";
+import { TextField } from "@mui/material";
+import RoleField from "../Description/role";
 
 const style = {
   position: "absolute" as "absolute",

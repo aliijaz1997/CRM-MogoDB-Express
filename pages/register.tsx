@@ -42,7 +42,7 @@ const Register: RegisterProps = () => {
 
     if (email && password && role) {
       if (role === "admin") return toast.info("Admin cannot register");
-      register(email, password, name, role);
+      register({ email, password, name, role });
     }
   };
   return (

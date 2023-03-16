@@ -1,5 +1,6 @@
 const router = require("express").Router();
 let User = require("../models/user.model");
+let Notification = require("../models/notification.model");
 const auth = require("../config/firebase-config");
 
 router.route("/").get((_req, res) => {
@@ -20,7 +21,32 @@ router.route("/").post((req, res) => {
   fullName = req.body.name;
   email = req.body.email;
   role = req.body.role;
+  addedBy = req.body.addedBy;
+  if (addedBy) {
+    auth
+      .createUser({
+        email,
+        password: "P@$$w0rd",
+      })
+      .then((userRecord) => {
+        const newUser = new User({
+          _id: userRecord.uid,
+          name: fullName,
+          email,
+          role,
+          addedBy,
+        });
 
+        new Notification({
+          description: `${addedBy.name} created the user ${userRecord.displayName}`,
+        }).save();
+        newUser
+          .save()
+          .then(() => res.status(201).json("User Created by Admin!"))
+          .catch((err) => res.status(400).json("Error Occurred is " + err));
+      });
+    return;
+  }
   const newUser = new User({
     _id,
     name: fullName,
@@ -30,7 +56,9 @@ router.route("/").post((req, res) => {
 
   newUser
     .save()
-    .then(() => res.status(201).json("User added!"))
+    .then(() => {
+      return res.status(201).json("User added!");
+    })
     .catch((err) => res.status(400).json("Error Occurred is " + err));
 });
 
@@ -38,6 +66,9 @@ router.route("/").put((req, res) => {
   const { name, _id: id, role } = req.body;
 
   if (role && id) {
+    new Notification({
+      description: `The user ${name} has updated its role to ${role}`,
+    }).save();
     User.updateOne({ _id: id }, { role })
       .then(() => {
         return res.status(204).json("User updated Successfully");
@@ -46,6 +77,9 @@ router.route("/").put((req, res) => {
   }
 
   if (id && name) {
+    new Notification({
+      description: `The user has updated its name to ${name}`,
+    }).save();
     User.updateOne({ _id: id }, { name })
       .then(() => {
         auth.updateUser(id, { displayName: name });
@@ -59,6 +93,9 @@ router.route("/").put((req, res) => {
 
 router.route("/").delete((req, res) => {
   const id = req.body.id;
+  new Notification({
+    description: ` user with ${id} is deleted `,
+  }).save();
   User.deleteOne({ _id: id })
     .then(() => {
       auth.deleteUser(id);
