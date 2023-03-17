@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -28,6 +28,7 @@ import {
 } from "@mui/icons-material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import {
+  useGetNotificationsQuery,
   useGetUserByIdQuery,
   useTemporaryAuthMutation,
 } from "../../store/services/api";
@@ -43,6 +44,9 @@ import NotificationDropDown from "../Notifications/notification";
 interface LayoutProps {
   children: React.ReactNode;
 }
+
+const MAX_RECENT_COUNT = 8;
+
 export default function Layout(props: LayoutProps) {
   const [open, setOpen] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
@@ -67,6 +71,19 @@ export default function Layout(props: LayoutProps) {
     id: currentUser?.uid as string,
   });
   const [temporaryAuth] = useTemporaryAuthMutation();
+  const { data: notifications } = useGetNotificationsQuery(null);
+
+  const sortedNotifications = useMemo(() => {
+    if (!notifications) return [];
+    return [...notifications]
+      .sort((a, b) => {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      })
+      .slice(0, MAX_RECENT_COUNT);
+  }, [notifications]);
+
   if (isError || isLoading || !user) {
     return <Loader />;
   }
@@ -102,7 +119,7 @@ export default function Layout(props: LayoutProps) {
           </Typography>
           <IconButton color="inherit">
             <Badge
-              badgeContent={4}
+              badgeContent={notifications ? notifications.length : 0}
               color="secondary"
               onClick={handlePopoverOpen}
             >
@@ -205,7 +222,13 @@ export default function Layout(props: LayoutProps) {
         sx={{ flexGrow: 1, height: "100vh", overflowX: "auto" }}
       >
         <Toolbar />
-        <NotificationDropDown anchorEl={anchorEl} setAnchorEl={setAnchorEl} />
+        {notifications && (
+          <NotificationDropDown
+            notifications={sortedNotifications}
+            anchorEl={anchorEl}
+            setAnchorEl={setAnchorEl}
+          />
+        )}
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           {props.children}
           <Box

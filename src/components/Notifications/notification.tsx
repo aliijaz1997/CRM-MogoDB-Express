@@ -1,26 +1,23 @@
 import { Box, Popover, Typography } from "@mui/material";
 import React from "react";
-import { useGetNotificationsQuery } from "../../store/services/api";
-import Loader from "../loader";
+import { Notification } from "../../types";
 
 interface PopoverDropdownProps {
   anchorEl: HTMLButtonElement | null;
+  notifications: Notification[];
   onClose: () => void;
 }
 
 const PopoverDropdown: React.FC<PopoverDropdownProps> = ({
   anchorEl,
+  notifications,
   onClose,
 }) => {
-  const {
-    data: notifications,
-    isError,
-    isLoading,
-  } = useGetNotificationsQuery(null);
-
-  if (isError || isLoading || !notifications?.length) return <Loader />;
   return (
     <Popover open={Boolean(anchorEl)} anchorEl={anchorEl} onClose={onClose}>
+      <Typography component="h6" variant="h4">
+        Notifications
+      </Typography>
       {notifications.map((item, index) => (
         <Box
           sx={{
@@ -42,20 +39,27 @@ const PopoverDropdown: React.FC<PopoverDropdownProps> = ({
 };
 
 interface NotificationDropDownProps {
-  // Props for MyComponent
   anchorEl: HTMLButtonElement | null;
+  notifications: Notification[];
   setAnchorEl: React.Dispatch<React.SetStateAction<HTMLButtonElement | null>>;
 }
 
 const NotificationDropDown: React.FC<NotificationDropDownProps> = ({
   anchorEl,
+  notifications,
   setAnchorEl,
 }) => {
   const handlePopoverClose = () => {
     setAnchorEl(null);
   };
 
-  return <PopoverDropdown anchorEl={anchorEl} onClose={handlePopoverClose} />;
+  return (
+    <PopoverDropdown
+      notifications={notifications}
+      anchorEl={anchorEl}
+      onClose={handlePopoverClose}
+    />
+  );
 };
 
 export default NotificationDropDown;

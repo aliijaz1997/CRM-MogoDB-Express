@@ -19,4 +19,5 @@ export enum UserRole {
 export interface Notification {
   _id: string;
   description: string;
+  createdAt: string;
 }

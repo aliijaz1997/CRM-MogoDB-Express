@@ -17,7 +17,7 @@ interface RoleField {
 export default function RoleField({ id, userRole }: RoleField) {
   const [role, setRole] = useState(userRole);
 
-  const { currentUserRole } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
   const [updateUser] = useUpdateUserMutation();
   return (
@@ -31,15 +31,16 @@ export default function RoleField({ id, userRole }: RoleField) {
         onChange={(e) => {
           const value = e.target.value;
           if (value === role) return;
+          if (user) {
+            const allowRoleEdit = canThisRoleEdit({
+              role: user.role,
+              roleToEdit: role,
+            });
 
-          const allowRoleEdit = canThisRoleEdit({
-            role: currentUserRole,
-            roleToEdit: role,
-          });
-
-          if (!allowRoleEdit) {
-            setRole(userRole);
-            return;
+            if (!allowRoleEdit) {
+              setRole(userRole);
+              return;
+            }
           }
 
           updateUser({

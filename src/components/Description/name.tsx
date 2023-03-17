@@ -17,7 +17,7 @@ export default function NameField({ id, userName, userRole }: NameField) {
   const [name, setName] = useState(userName);
   const [canEdit, setCanEdit] = useState(false);
 
-  const { currentUserRole } = useContext(AuthContext);
+  const { user: currentUser } = useContext(AuthContext);
 
   const [updateUser] = useUpdateUserMutation();
   const { data: user } = useGetUserByIdQuery({
@@ -32,37 +32,44 @@ export default function NameField({ id, userName, userRole }: NameField) {
             setName(e.target.value);
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && name !== userName) {
-              const allowRoleEdit = canThisRoleEdit({
-                role: currentUserRole,
-                roleToEdit: userRole,
-              });
-              if (!allowRoleEdit) {
-                setName(userName);
-                return;
+            if (user) {
+              if (e.key === "Enter" && name !== user.name) {
+                if (currentUser) {
+                  const allowRoleEdit = canThisRoleEdit({
+                    role: currentUser.role,
+                    roleToEdit: userRole,
+                  });
+                  if (!allowRoleEdit) {
+                    setName(user.name);
+                    return;
+                  }
+                }
+
+                updateUser({ body: { _id: id, name } })
+                  .then(() => {
+                    toast.success("User updated Successfully");
+                  })
+                  .catch((err) => {
+                    toast.error(`Error Occurred: ${err}`);
+                  });
+
+                setCanEdit(false);
               }
-
-              updateUser({ body: { _id: id, name } })
-                .then(() => {
-                  toast.success("User updated Successfully");
-                })
-                .catch((err) => {
-                  toast.error(`Error Occurred: ${err}`);
-                });
-
-              setCanEdit(false);
             }
           }}
           onBlur={() => {
-            if (name !== userName) {
-              const allowRoleEdit = canThisRoleEdit({
-                role: currentUserRole,
-                roleToEdit: userRole,
-              });
-
-              if (!allowRoleEdit) {
-                setName(userName);
-                return;
+            if (user) {
+              if (name !== user.name) {
+                if (currentUser) {
+                  const allowRoleEdit = canThisRoleEdit({
+                    role: currentUser.role,
+                    roleToEdit: userRole,
+                  });
+                  if (!allowRoleEdit) {
+                    setName(user.name);
+                    return;
+                  }
+                }
               }
               updateUser({ body: { _id: id, name } })
                 .then(() => {
