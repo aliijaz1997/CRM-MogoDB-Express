@@ -9,7 +9,9 @@ export default function MainLayout(props: LayoutProps) {
   const router = useRouter();
 
   const showLayout =
-    router.pathname.includes("/login") || router.pathname.includes("/register")
+    router.pathname.includes("/login") ||
+    router.pathname.includes("/register") ||
+    router.pathname.includes("/forgot-password")
       ? false
       : true;
 

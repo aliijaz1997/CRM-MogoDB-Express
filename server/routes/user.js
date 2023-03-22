@@ -65,30 +65,43 @@ router.route("/").post((req, res) => {
 router.route("/").put((req, res) => {
   const { name, _id: id, role } = req.body;
 
-  if (role && id) {
-    new Notification({
-      description: `The user ${name} has updated its role to ${role}`,
-    }).save();
-    User.updateOne({ _id: id }, { role })
-      .then(() => {
-        return res.status(204).json("User updated Successfully");
-      })
-      .catch((err) => res.status(400).json("Error Occurred is " + err));
-  }
+  try {
+    if (name && role && id) {
+      new Notification({
+        description: `The user has updated its name and role`,
+      }).save();
+      User.updateOne({ _id: id }, { role, name })
+        .then(() => {
+          return res.status(204).json("User updated Successfully");
+        })
+        .catch((err) => res.status(400).json("Error Occurred is " + err));
+    }
 
-  if (id && name) {
-    new Notification({
-      description: `The user has updated its name to ${name}`,
-    }).save();
-    User.updateOne({ _id: id }, { name })
-      .then(() => {
-        auth.updateUser(id, { displayName: name });
-        return res.status(204).json("User updated Successfully");
-      })
-      .catch((err) => res.status(400).json("Error Occurred is " + err));
-  }
+    if (role && id && !name) {
+      new Notification({
+        description: `The user ${name} has updated its role to ${role}`,
+      }).save();
+      User.updateOne({ _id: id }, { role })
+        .then(() => {
+          return res.status(204).json("User updated Successfully");
+        })
+        .catch((err) => res.status(400).json("Error Occurred is " + err));
+    }
 
-  return new Error("Unable to update user");
+    if (id && name && !role) {
+      new Notification({
+        description: `The user has updated its name to ${name}`,
+      }).save();
+      User.updateOne({ _id: id }, { name })
+        .then(() => {
+          auth.updateUser(id, { displayName: name });
+          return res.status(204).json("User updated Successfully");
+        })
+        .catch((err) => res.status(400).json("Error Occurred is " + err));
+    }
+  } catch (err) {
+    throw new Error(`Error Occurred: ${err}`);
+  }
 });
 
 router.route("/").delete((req, res) => {

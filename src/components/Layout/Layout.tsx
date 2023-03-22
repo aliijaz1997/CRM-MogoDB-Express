@@ -119,7 +119,9 @@ export default function Layout(props: LayoutProps) {
           </Typography>
           <IconButton color="inherit">
             <Badge
-              badgeContent={notifications ? notifications.length : 0}
+              badgeContent={
+                sortedNotifications ? sortedNotifications.length : 0
+              }
               color="secondary"
               onClick={handlePopoverOpen}
             >
