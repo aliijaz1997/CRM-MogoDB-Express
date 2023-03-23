@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Table,
   TableHead,
@@ -11,17 +11,11 @@ import {
   Pagination,
   Box,
 } from "@mui/material";
-import {
-  useDeleteUserMutation,
-  useTemporaryAuthMutation,
-} from "../../store/services/api";
+import { useDeleteUserMutation } from "../../store/services/api";
 import { UserType } from "../../types";
 import { toast } from "react-toastify";
 import UpdateUserModal from "../Modals/updateModal";
-import { AuthContext } from "../../context/authContext";
-import { localStorageService } from "../../utils/localStorageService";
-import { ImportExport, Login } from "@mui/icons-material";
-import { useRouter } from "next/router";
+import { ImportExport } from "@mui/icons-material";
 import { SearchType } from "../../../pages/admin/manage";
 
 interface UsersTableProps {
@@ -51,7 +45,6 @@ function UsersTable({ usersList, search }: UsersTableProps) {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return [...usersList]
-      .slice(startIndex, endIndex)
       .sort((a, b) => {
         const sortValue = sortOrder === "asc" ? 1 : -1;
         if (a[sortBy] < b[sortBy]) {
@@ -73,7 +66,8 @@ function UsersTable({ usersList, search }: UsersTableProps) {
           !search.role ||
           u.role.toLowerCase().includes(search.role.toLowerCase());
         return nameMatch && emailMatch && roleMatch;
-      });
+      })
+      .slice(startIndex, endIndex);
   }, [totalPages, itemsPerPage, currentPage, usersList, sortOrder, search]);
 
   const [deleteUser] = useDeleteUserMutation();

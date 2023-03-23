@@ -40,7 +40,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
-  const [sortBy, setSortBy] = useState<SortBy>("role");
+  const [sortBy, setSortBy] = useState<SortBy>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -54,7 +54,6 @@ function CLientTable({ usersList, search }: UsersTableProps) {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return [...usersList]
-      .slice(startIndex, endIndex)
       .sort((a, b) => {
         const sortValue = sortOrder === "asc" ? 1 : -1;
         if (a[sortBy] < b[sortBy]) {
@@ -73,7 +72,8 @@ function CLientTable({ usersList, search }: UsersTableProps) {
           !search.email ||
           u.email.toLowerCase().includes(search.email.toLowerCase());
         return nameMatch && emailMatch;
-      });
+      })
+      .slice(startIndex, endIndex);
   }, [totalPages, itemsPerPage, currentPage, usersList, sortOrder, search]);
 
   const router = useRouter();

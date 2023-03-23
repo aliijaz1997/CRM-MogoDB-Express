@@ -1,9 +1,6 @@
 import React, { useContext, useState } from "react";
 import { Box, TextField } from "@mui/material";
-import {
-  useGetUserByIdQuery,
-  useUpdateUserMutation,
-} from "../../store/services/api";
+import { useUpdateUserMutation } from "../../store/services/api";
 import { toast } from "react-toastify";
 import { UserRole } from "../../types";
 import MenuItem from "@mui/material/MenuItem";

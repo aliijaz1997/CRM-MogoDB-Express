@@ -20,6 +20,7 @@ import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import {
+  AccountCircle,
   ChevronLeft,
   GroupAdd,
   Logout,
@@ -40,6 +41,7 @@ import { toast } from "react-toastify";
 import Loader from "../loader";
 import { useRouter } from "next/router";
 import NotificationDropDown from "../Notifications/notification";
+import ProfileDropdown from "../Profile/profileDropDown";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -52,7 +54,12 @@ export default function Layout(props: LayoutProps) {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
   );
+  const [anchorProfileEl, setAnchorProfileEl] =
+    React.useState<null | HTMLElement>(null);
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorProfileEl(event.currentTarget);
+  };
   const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -117,13 +124,16 @@ export default function Layout(props: LayoutProps) {
           >
             Client Management System
           </Typography>
-          <IconButton color="inherit">
+
+          <IconButton onClick={handleMenuOpen} color="inherit">
+            <AccountCircle />
+          </IconButton>
+          <IconButton onClick={handlePopoverOpen} color="inherit">
             <Badge
               badgeContent={
                 sortedNotifications ? sortedNotifications.length : 0
               }
               color="secondary"
-              onClick={handlePopoverOpen}
             >
               <NotificationsIcon />
             </Badge>
@@ -231,6 +241,10 @@ export default function Layout(props: LayoutProps) {
             setAnchorEl={setAnchorEl}
           />
         )}
+        <ProfileDropdown
+          anchorProfileEl={anchorProfileEl}
+          setAnchorProfileEl={setAnchorProfileEl}
+        />
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           {props.children}
           <Box

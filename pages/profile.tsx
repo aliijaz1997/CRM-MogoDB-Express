@@ -17,7 +17,12 @@ import { styled } from "@mui/system";
 import { AuthContext } from "../src/context/authContext";
 import auth, { storage } from "../src/utils/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { sendPasswordResetEmail, updateProfile, User } from "firebase/auth";
+import {
+  sendPasswordResetEmail,
+  updatePassword,
+  updateProfile,
+  User,
+} from "firebase/auth";
 import { toast } from "react-toastify";
 import { UserRole } from "../src/types";
 import {
@@ -131,16 +136,22 @@ const ManageProfile = () => {
   }, [currentUser?.photoURL]);
 
   const handlePasswordChange = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
-    if (user) {
-      sendPasswordResetEmail(auth, user.email)
+    if (currentUser) {
+      setIsLoading(true);
+      updatePassword(currentUser, confirmPassword)
         .then(() => {
+          setIsLoading(false);
+          setPassword("");
+          setConfirmPassword("");
           toast.success("Password changed");
         })
         .catch((error) => {
+          setIsLoading(false);
           toast.error(error.message);
         });
     }
@@ -277,7 +288,7 @@ const ManageProfile = () => {
                 <StyledButton
                   variant="contained"
                   color="primary"
-                  // onClick={handleSaveProfile}
+                  type="submit"
                   disabled={isLoading}
                   startIcon={
                     isLoading ? (
