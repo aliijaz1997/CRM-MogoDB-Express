@@ -3,9 +3,7 @@ import {
   Avatar,
   Box,
   Button,
-  Checkbox,
   CssBaseline,
-  FormControlLabel,
   Grid,
   Link,
   TextField,
@@ -47,12 +45,13 @@ const Login: LoginProps = () => {
     const data = new FormData(event.currentTarget);
     const email = data.get("email") as string;
     const password = data.get("password") as string;
+
     login(email, password)
       .then((res) => {
         toast.success("Logged in successfully");
       })
       .catch((err) => {
-        toast.error(`Error occured : ${err}`);
+        toast.error(`Error occurred : ${err}`);
       });
   };
   return (
