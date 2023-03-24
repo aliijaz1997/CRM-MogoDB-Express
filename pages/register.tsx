@@ -46,7 +46,7 @@ const Register: RegisterProps = () => {
     }
   };
   return (
-    <Box sx={{ backgroundColor: "#F4EFEE", height: "100vh" }}>
+    <Box sx={{ height: "100vh" }}>
       <CssBaseline />
       <Box
         sx={{
@@ -103,50 +103,10 @@ const Register: RegisterProps = () => {
             select
             defaultValue="client"
           >
-            <MenuItem
-              sx={{
-                "&:hover": {
-                  color: "#4F45F6",
-                  backgroundColor: "#D8D6FD",
-                },
-              }}
-              value="client"
-            >
-              Client
-            </MenuItem>
-            <MenuItem
-              sx={{
-                "&:hover": {
-                  color: "#4F45F6",
-                  backgroundColor: "#D8D6FD",
-                },
-              }}
-              value="admin"
-            >
-              Admin
-            </MenuItem>
-            <MenuItem
-              sx={{
-                "&:hover": {
-                  color: "#4F45F6",
-                  backgroundColor: "#D8D6FD",
-                },
-              }}
-              value="staff"
-            >
-              Staff
-            </MenuItem>
-            <MenuItem
-              sx={{
-                "&:hover": {
-                  color: "#4F45F6",
-                  backgroundColor: "#D8D6FD",
-                },
-              }}
-              value="manager"
-            >
-              Manager
-            </MenuItem>
+            <MenuItem value="client">Client</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="staff">Staff</MenuItem>
+            <MenuItem value="manager">Manager</MenuItem>
           </TextField>
           <Button
             type="submit"

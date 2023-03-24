@@ -15,7 +15,7 @@ import { useDeleteUserMutation } from "../../store/services/api";
 import { UserType } from "../../types";
 import { toast } from "react-toastify";
 import UpdateUserModal from "../Modals/updateModal";
-import { ImportExport } from "@mui/icons-material";
+import { Delete, Edit, ImportExport } from "@mui/icons-material";
 import { SearchType } from "../../../pages/admin/manage";
 
 interface UsersTableProps {
@@ -95,9 +95,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
     >
       <TableContainer
         sx={{
-          backgroundColor: "#E6E6FA",
           boxShadow: "0px 0px 3px 3px lightGray",
-          borderRadius: "20px",
         }}
       >
         {selectedUser && (
@@ -111,11 +109,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableCell
-                  key={column}
-                  align="left"
-                  sx={{ minWidth: 150, bgcolor: "#6a1b9a", color: "white" }}
-                >
+                <TableCell key={column} align="left" sx={{ minWidth: 150 }}>
                   {column}
                   {column !== "Action" && (
                     <IconButton
@@ -148,6 +142,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                           setModalOpen(true);
                           setSelectedUser(user);
                         }}
+                        startIcon={<Edit />}
                       >
                         Edit
                       </Button>
@@ -166,6 +161,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                               toast.error(`Error Occurred: ${e}`);
                             });
                         }}
+                        startIcon={<Delete />}
                       >
                         Delete
                       </Button>
@@ -176,7 +172,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
           </TableBody>
         </Table>
       </TableContainer>
-      <Box sx={{ m: "10px", bgcolor: "#E6E6FA", borderRadius: "10px" }}>
+      <Box sx={{ m: "10px", borderRadius: "10px" }}>
         <Pagination
           count={totalPages}
           page={currentPage}

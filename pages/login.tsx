@@ -55,7 +55,7 @@ const Login: LoginProps = () => {
       });
   };
   return (
-    <Box sx={{ backgroundColor: "#F4EFEE", height: "100vh" }}>
+    <Box sx={{ height: "100vh" }}>
       <CssBaseline />
       <Box
         sx={{

@@ -20,7 +20,7 @@ import { toast } from "react-toastify";
 import UpdateUserModal from "../Modals/updateModal";
 import { AuthContext } from "../../context/authContext";
 import { localStorageService } from "../../utils/localStorageService";
-import { Add, ImportExport, Login } from "@mui/icons-material";
+import { Add, Delete, Edit, ImportExport, Login } from "@mui/icons-material";
 import { useRouter } from "next/router";
 import { SearchType } from "../../../pages/admin/manage";
 import AddUserModal from "../Modals/addUserModal";
@@ -130,15 +130,10 @@ function CLientTable({ usersList, search }: UsersTableProps) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        mt: 2,
       }}
     >
-      <TableContainer
-        sx={{
-          backgroundColor: "#E6E6FA",
-          boxShadow: "0px 0px 3px 3px lightGray",
-          borderRadius: "20px",
-        }}
-      >
+      <TableContainer sx={{ boxShadow: "0px 0px 3px 3px lightGray" }}>
         {selectedUser && (
           <UpdateUserModal
             user={selectedUser}
@@ -156,11 +151,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableCell
-                  key={column}
-                  align="left"
-                  sx={{ minWidth: 150, bgcolor: "#6a1b9a", color: "white" }}
-                >
+                <TableCell key={column} align="left" sx={{ minWidth: 150 }}>
                   {column}
                   {column !== "Action" && column !== "Added By" && (
                     <IconButton
@@ -174,7 +165,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
                   )}
                 </TableCell>
               ))}
-              <TableCell sx={{ bgcolor: "#6a1b9a", width: 30 }}>
+              <TableCell sx={{ width: 30 }}>
                 <IconButton
                   onClick={() => {
                     setAddModalOpen(true);
@@ -213,6 +204,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
                           setModalOpen(true);
                           setSelectedUser(user);
                         }}
+                        startIcon={<Edit />}
                       >
                         Edit
                       </Button>
@@ -231,6 +223,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
                               toast.error(`Error Occurred: ${e}`);
                             });
                         }}
+                        startIcon={<Delete />}
                       >
                         Delete
                       </Button>
@@ -241,7 +234,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
           </TableBody>
         </Table>
       </TableContainer>
-      <Box sx={{ m: "10px", bgcolor: "#E6E6FA", borderRadius: "10px" }}>
+      <Box sx={{ m: "10px", borderRadius: "10px" }}>
         <Pagination
           count={totalPages}
           page={currentPage}

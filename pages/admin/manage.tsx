@@ -32,11 +32,8 @@ export default function ManageUsers() {
     <Box>
       <Typography
         sx={{
-          bgcolor: "lightslategray",
-          color: "whitesmoke",
           display: "flex",
-          justifyContent: "center",
-          borderRadius: "10px",
+          justifyContent: "left",
         }}
         variant="h3"
         component="h1"
@@ -46,9 +43,8 @@ export default function ManageUsers() {
       <Box
         sx={{
           display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          m: "15px",
+          justifyContent: "left",
+          alignItems: "left",
         }}
       >
         <TextField
@@ -57,6 +53,7 @@ export default function ManageUsers() {
           variant="outlined"
           value={search?.name}
           color="primary"
+          size="small"
           onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
         />
@@ -66,6 +63,7 @@ export default function ManageUsers() {
           variant="outlined"
           value={search?.email}
           color="primary"
+          size="small"
           onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
         />
@@ -75,6 +73,7 @@ export default function ManageUsers() {
           variant="outlined"
           value={search?.role}
           color="primary"
+          size="small"
           onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
         />

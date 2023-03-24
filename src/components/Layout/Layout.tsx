@@ -42,6 +42,8 @@ import Loader from "../loader";
 import { useRouter } from "next/router";
 import NotificationDropDown from "../Notifications/notification";
 import ProfileDropdown from "../Profile/profileDropDown";
+import Logo from "../../../public/crm-browser-icon.svg";
+import Image from "next/image";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -91,9 +93,14 @@ export default function Layout(props: LayoutProps) {
       .slice(0, MAX_RECENT_COUNT);
   }, [notifications]);
 
+  const showSelectedNav = (path: string) => {
+    return router.pathname.includes(path) ? true : false;
+  };
+
   if (isError || isLoading || !user) {
     return <Loader />;
   }
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -115,14 +122,19 @@ export default function Layout(props: LayoutProps) {
           >
             <MenuIcon />
           </IconButton>
+          {!open && <Image alt="Logo" src={Logo} width={50} height={50} />}
           <Typography
             component="h1"
-            variant="h6"
+            variant="h3"
             color="inherit"
             noWrap
-            sx={{ flexGrow: 1 }}
+            sx={{
+              ml: 2.5,
+              flexGrow: 1,
+              visibility: open ? "hidden" : "visible",
+            }}
           >
-            Client Management System
+            CRM
           </Typography>
 
           <IconButton onClick={handleMenuOpen} color="inherit">
@@ -140,16 +152,29 @@ export default function Layout(props: LayoutProps) {
           </IconButton>
         </Toolbar>
       </AppBar>
-      <Drawer variant="permanent" open={open}>
+      <Drawer variant="permanent" sx={{ bgColor: "red" }} open={open}>
         <Toolbar
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             px: [1],
           }}
         >
-          <IconButton color="primary" onClick={toggleDrawer}>
+          <Image alt="Logo" src={Logo} width={50} height={50} />
+          <Typography
+            component="h1"
+            variant="h3"
+            color="inherit"
+            noWrap
+            sx={{
+              ml: 2.5,
+              flexGrow: 1,
+            }}
+          >
+            CRM
+          </Typography>
+          <IconButton sx={{ color: "text.secondary" }} onClick={toggleDrawer}>
             <ChevronLeft />
           </IconButton>
         </Toolbar>
@@ -163,22 +188,54 @@ export default function Layout(props: LayoutProps) {
                 router.push("/");
               }
             }}
+            sx={{
+              color: showSelectedNav("/admin")
+                ? "text.primary"
+                : "text.secondary",
+              "& .MuiListItemIcon-root": {
+                color: "text.secondary",
+              },
+              bgcolor: showSelectedNav("/admin") ? "secondary.light" : "",
+              "&:hover": {
+                cursor: "pointer",
+                "& .MuiListItemIcon-root": {
+                  // styles for the ListItemIcon when it's a child of the ListItemButton and is hovered over
+                  color: "text.primary",
+                },
+              },
+            }}
           >
             <ListItemIcon>
-              <Dashboard color="primary" />
+              <Dashboard />
             </ListItemIcon>
-            <ListItemText sx={{ color: "#6a1b9a" }} primary="Dashboard" />
+            <ListItemText primary="Dashboard" />
           </ListItemButton>
           {user?.role !== UserRole.Client && (
             <ListItemButton
               onClick={() => {
                 router.push("/client");
               }}
+              sx={{
+                color: showSelectedNav("/client")
+                  ? "text.primary"
+                  : "text.secondary",
+                "& .MuiListItemIcon-root": {
+                  color: "text.secondary",
+                },
+                bgcolor: showSelectedNav("/client") ? "secondary.light" : "",
+                "&:hover": {
+                  cursor: "pointer",
+                  "& .MuiListItemIcon-root": {
+                    // styles for the ListItemIcon when it's a child of the ListItemButton and is hovered over
+                    color: "text.primary",
+                  },
+                },
+              }}
             >
               <ListItemIcon>
-                <GroupAdd color="primary" />
+                <GroupAdd />
               </ListItemIcon>
-              <ListItemText sx={{ color: "#6a1b9a" }} primary="Clients" />
+              <ListItemText primary="Clients" />
             </ListItemButton>
           )}
           {user?.role !== UserRole.Client && (
@@ -186,22 +243,37 @@ export default function Layout(props: LayoutProps) {
               onClick={() => {
                 router.push("/admin/manage");
               }}
+              sx={{
+                color: showSelectedNav("/admin/manage")
+                  ? "text.primary"
+                  : "text.secondary",
+                "& .MuiListItemIcon-root": {
+                  color: "text.secondary",
+                },
+                bgcolor: showSelectedNav("/admin/manage")
+                  ? "secondary.light"
+                  : "",
+                "&:hover": {
+                  cursor: "pointer",
+                  "& .MuiListItemIcon-root": {
+                    // styles for the ListItemIcon when it's a child of the ListItemButton and is hovered over
+                    color: "text.primary",
+                  },
+                },
+              }}
             >
               <ListItemIcon>
-                <ManageAccounts color="primary" />
+                <ManageAccounts />
               </ListItemIcon>
-              <ListItemText sx={{ color: "#6a1b9a" }} primary="Users" />
+              <ListItemText primary="Users" />
             </ListItemButton>
           )}
           <Divider sx={{ my: 1 }} />
-          <ListSubheader component="div" inset>
-            Actions
-          </ListSubheader>
           <ListItemButton onClick={logout}>
             <ListItemIcon>
-              <Logout color="secondary" />
+              <Logout />
             </ListItemIcon>
-            <ListItemText sx={{ color: "#d32f2f" }} primary="Log Out" />
+            <ListItemText primary="Log Out" />
           </ListItemButton>
           {adminToken && (
             <ListItemButton
@@ -245,7 +317,7 @@ export default function Layout(props: LayoutProps) {
           anchorProfileEl={anchorProfileEl}
           setAnchorProfileEl={setAnchorProfileEl}
         />
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="xl" sx={{ mt: 1, mb: 1 }}>
           {props.children}
           <Box
             component="footer"
@@ -277,6 +349,8 @@ interface AppBarProps extends MuiAppBarProps {
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })<AppBarProps>(({ theme, open }) => ({
+  backgroundColor: "white",
+  color: theme.palette.primary.main,
   zIndex: theme.zIndex.drawer + 1,
   transition: theme.transitions.create(["width", "margin"], {
     easing: theme.transitions.easing.sharp,
@@ -284,6 +358,8 @@ const AppBar = styled(MuiAppBar, {
   }),
   ...(open && {
     marginLeft: drawerWidth,
+    backgroundColor: "white",
+    color: theme.palette.primary.main,
     width: `calc(100% - ${drawerWidth}px)`,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
@@ -299,6 +375,8 @@ const Drawer = styled(MuiDrawer, {
     position: "relative",
     whiteSpace: "nowrap",
     width: drawerWidth,
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.text.secondary,
     transition: theme.transitions.create("width", {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,

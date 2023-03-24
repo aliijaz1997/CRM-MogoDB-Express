@@ -26,11 +26,9 @@ export default function Client() {
     <Box>
       <Typography
         sx={{
-          bgcolor: "lightblue",
-          color: "whitesmoke",
           display: "flex",
-          justifyContent: "center",
-          borderRadius: "10px",
+          justifyContent: "left",
+          mb: 1,
         }}
         variant="h3"
         component="h1"
@@ -40,9 +38,8 @@ export default function Client() {
       <Box
         sx={{
           display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          m: "15px",
+          justifyContent: "left",
+          alignItems: "left",
         }}
       >
         <TextField
@@ -51,6 +48,7 @@ export default function Client() {
           variant="outlined"
           value={search?.name}
           color="primary"
+          size="small"
           onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
         />
@@ -60,6 +58,7 @@ export default function Client() {
           variant="outlined"
           value={search?.email}
           color="primary"
+          size="small"
           onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
         />
@@ -69,6 +68,7 @@ export default function Client() {
           variant="outlined"
           value={search?.role}
           color="primary"
+          size="small"
           onChange={handleOnchangeInput}
           sx={{ m: "2px" }}
         />

@@ -23,8 +23,6 @@ const PopoverDropdown: React.FC<PopoverDropdownProps> = ({
           sx={{
             width: "250px",
             borderRadius: "5px",
-            backgroundColor: "#fff",
-            boxShadow: "0 0 10px #6a1b9a",
             m: "10px",
           }}
           key={index}
