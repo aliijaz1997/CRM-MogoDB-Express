@@ -34,6 +34,7 @@ export default function ManageUsers() {
         sx={{
           display: "flex",
           justifyContent: "left",
+          mb: 1,
         }}
         variant="h3"
         component="h1"

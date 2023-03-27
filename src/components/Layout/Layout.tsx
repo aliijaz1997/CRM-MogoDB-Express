@@ -165,11 +165,11 @@ export default function Layout(props: LayoutProps) {
           <Typography
             component="h1"
             variant="h3"
-            color="inherit"
             noWrap
             sx={{
               ml: 2.5,
               flexGrow: 1,
+              color: "white",
             }}
           >
             CRM
@@ -189,13 +189,17 @@ export default function Layout(props: LayoutProps) {
               }
             }}
             sx={{
-              color: showSelectedNav("/admin")
-                ? "text.primary"
-                : "text.secondary",
+              color:
+                showSelectedNav("/admin") && !showSelectedNav("users")
+                  ? "text.primary"
+                  : "text.secondary",
               "& .MuiListItemIcon-root": {
                 color: "text.secondary",
               },
-              bgcolor: showSelectedNav("/admin") ? "secondary.light" : "",
+              bgcolor:
+                showSelectedNav("/admin") && !showSelectedNav("users")
+                  ? "secondary.light"
+                  : "",
               "&:hover": {
                 cursor: "pointer",
                 "& .MuiListItemIcon-root": {
@@ -241,18 +245,16 @@ export default function Layout(props: LayoutProps) {
           {user?.role !== UserRole.Client && (
             <ListItemButton
               onClick={() => {
-                router.push("/admin/manage");
+                router.push("/admin/users");
               }}
               sx={{
-                color: showSelectedNav("/admin/manage")
+                color: showSelectedNav("/users")
                   ? "text.primary"
                   : "text.secondary",
                 "& .MuiListItemIcon-root": {
                   color: "text.secondary",
                 },
-                bgcolor: showSelectedNav("/admin/manage")
-                  ? "secondary.light"
-                  : "",
+                bgcolor: showSelectedNav("/users") ? "secondary.light" : "",
                 "&:hover": {
                   cursor: "pointer",
                   "& .MuiListItemIcon-root": {
@@ -269,7 +271,20 @@ export default function Layout(props: LayoutProps) {
             </ListItemButton>
           )}
           <Divider sx={{ my: 1 }} />
-          <ListItemButton onClick={logout}>
+          <ListItemButton
+            onClick={logout}
+            sx={{
+              "& .MuiListItemIcon-root": {
+                color: "text.secondary",
+              },
+              "&:hover": {
+                cursor: "pointer",
+                "& .MuiListItemIcon-root": {
+                  color: "text.primary",
+                },
+              },
+            }}
+          >
             <ListItemIcon>
               <Logout />
             </ListItemIcon>

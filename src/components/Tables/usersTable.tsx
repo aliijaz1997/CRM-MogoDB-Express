@@ -16,7 +16,9 @@ import { UserType } from "../../types";
 import { toast } from "react-toastify";
 import UpdateUserModal from "../Modals/updateModal";
 import { Delete, Edit, ImportExport } from "@mui/icons-material";
-import { SearchType } from "../../../pages/admin/manage";
+import { SearchType } from "../../../pages/admin/users";
+import { useStyles } from "./styles";
+import formatDateTime from "../../helper/getDate";
 
 interface UsersTableProps {
   usersList: UserType[];
@@ -27,7 +29,7 @@ type SortOrder = "asc" | "desc";
 
 type SortBy = keyof Omit<UserType, "_id">;
 
-const columns = ["Name", "Email", "Role", "Action"];
+const columns = ["Name", "Email", "Created At", "Role", "Action"];
 
 function UsersTable({ usersList, search }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -38,6 +40,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const itemsPerPage = 5;
 
+  const classes = useStyles();
   const displayedUsers = useMemo(() => {
     const totalPages = Math.ceil(usersList.length / itemsPerPage);
     setTotalPages(totalPages);
@@ -82,7 +85,14 @@ function UsersTable({ usersList, search }: UsersTableProps) {
   };
 
   const StyledCell = ({ name }: { name: string }) => {
-    return <TableCell align="left">{name}</TableCell>;
+    return (
+      <TableCell
+        align="left"
+        sx={{ border: "1px solid rgba(224, 224, 224, 1)" }}
+      >
+        {name}
+      </TableCell>
+    );
   };
 
   return (
@@ -91,6 +101,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        mt: 2,
       }}
     >
       <TableContainer
@@ -105,18 +116,21 @@ function UsersTable({ usersList, search }: UsersTableProps) {
             setOpen={setModalOpen}
           />
         )}
-        <Table stickyHeader aria-label="sticky table">
+        <Table stickyHeader size="small" aria-label="sticky table">
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column} align="left" sx={{ minWidth: 150 }}>
+                <TableCell
+                  key={column}
+                  align="left"
+                  className={classes.tableHead}
+                >
                   {column}
                   {column !== "Action" && (
                     <IconButton
                       onClick={() => {
                         handleSort(column.toLowerCase() as SortBy);
                       }}
-                      sx={{ color: "white" }}
                     >
                       <ImportExport />
                     </IconButton>
@@ -132,6 +146,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                   <TableRow key={user._id} role="checkbox" tabIndex={-1}>
                     <StyledCell name={user.name} />
                     <StyledCell name={user.email} />
+                    <StyledCell name={formatDateTime(user.createdAt)} />
                     <StyledCell name={user.role} />
                     <TableCell sx={{ display: "flex", p: "21px" }}>
                       <Button

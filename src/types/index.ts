@@ -7,6 +7,7 @@ export interface UserType {
     name: string;
     role: UserRole;
   };
+  createdAt: string;
 }
 
 export enum UserRole {

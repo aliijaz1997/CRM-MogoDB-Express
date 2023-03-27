@@ -22,8 +22,10 @@ import { AuthContext } from "../../context/authContext";
 import { localStorageService } from "../../utils/localStorageService";
 import { Add, Delete, Edit, ImportExport, Login } from "@mui/icons-material";
 import { useRouter } from "next/router";
-import { SearchType } from "../../../pages/admin/manage";
+import { SearchType } from "../../../pages/admin/users";
 import AddUserModal from "../Modals/addUserModal";
+import formatDateTime from "../../helper/getDate";
+import { useStyles } from "./styles";
 
 interface UsersTableProps {
   usersList: UserType[];
@@ -34,7 +36,7 @@ type SortOrder = "asc" | "desc";
 
 type SortBy = keyof Omit<UserType, "_id">;
 
-const columns = ["Name", "Email", "Added By", "Action"];
+const columns = ["Name", "Email", "Created At", "Added By", "Action"];
 
 function CLientTable({ usersList, search }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -46,6 +48,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const itemsPerPage = 5;
 
+  const classes = useStyles();
   const { currentUser } = useContext(AuthContext);
   const displayedUsers = useMemo(() => {
     const totalPages = Math.ceil(usersList.length / itemsPerPage);
@@ -101,7 +104,10 @@ function CLientTable({ usersList, search }: UsersTableProps) {
     role?: string;
   }) => {
     return (
-      <TableCell align="left">
+      <TableCell
+        align="left"
+        sx={{ border: "1px solid rgba(224, 224, 224, 1)" }}
+      >
         {name} {role ? `(${role})` : null}
         {id && (
           <IconButton
@@ -147,18 +153,21 @@ function CLientTable({ usersList, search }: UsersTableProps) {
             setAddModalOpen(false);
           }}
         />
-        <Table stickyHeader aria-label="sticky table">
+        <Table stickyHeader size="small" aria-label="sticky table">
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column} align="left" sx={{ minWidth: 150 }}>
+                <TableCell
+                  key={column}
+                  align="left"
+                  className={classes.tableHead}
+                >
                   {column}
                   {column !== "Action" && column !== "Added By" && (
                     <IconButton
                       onClick={() => {
                         handleSort(column.toLowerCase() as SortBy);
                       }}
-                      sx={{ color: "white" }}
                     >
                       <ImportExport />
                     </IconButton>
@@ -170,7 +179,6 @@ function CLientTable({ usersList, search }: UsersTableProps) {
                   onClick={() => {
                     setAddModalOpen(true);
                   }}
-                  sx={{ color: "white" }}
                 >
                   <Add />
                 </IconButton>
@@ -187,6 +195,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
                       name={user.email}
                       id={user.role !== "admin" ? user._id : undefined}
                     />
+                    <StyledCell name={formatDateTime(user.createdAt)} />
                     {user.addedBy ? (
                       <StyledCell
                         name={user.addedBy.name}

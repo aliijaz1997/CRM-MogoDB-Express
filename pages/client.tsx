@@ -4,7 +4,7 @@ import Loader from "../src/components/loader";
 import CLientTable from "../src/components/Tables/clientUserTable";
 import { useGetUsersQuery } from "../src/store/services/api";
 import { UserRole } from "../src/types";
-import { SearchType } from "./admin/manage";
+import { SearchType } from "./admin/users";
 
 export default function Client() {
   const [search, setSearch] = React.useState<SearchType>({
@@ -57,16 +57,6 @@ export default function Client() {
           name="email"
           variant="outlined"
           value={search?.email}
-          color="primary"
-          size="small"
-          onChange={handleOnchangeInput}
-          sx={{ m: "2px" }}
-        />
-        <TextField
-          label="Search user by role"
-          name="role"
-          variant="outlined"
-          value={search?.role}
           color="primary"
           size="small"
           onChange={handleOnchangeInput}
