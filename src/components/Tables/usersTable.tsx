@@ -148,7 +148,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                     <StyledCell name={user.email} />
                     <StyledCell name={formatDateTime(user.createdAt)} />
                     <StyledCell name={user.role} />
-                    <TableCell sx={{ display: "flex", p: "21px" }}>
+                    <TableCell sx={{ display: "flex" }}>
                       <Button
                         variant="contained"
                         color="primary"

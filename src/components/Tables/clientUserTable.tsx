@@ -30,6 +30,8 @@ import { useStyles } from "./styles";
 interface UsersTableProps {
   usersList: UserType[];
   search: SearchType;
+  addModalOpen: boolean;
+  handleCloseAddModal: () => void;
 }
 
 type SortOrder = "asc" | "desc";
@@ -38,9 +40,13 @@ type SortBy = keyof Omit<UserType, "_id">;
 
 const columns = ["Name", "Email", "Created At", "Added By", "Action"];
 
-function CLientTable({ usersList, search }: UsersTableProps) {
+function CLientTable({
+  usersList,
+  search,
+  addModalOpen,
+  handleCloseAddModal,
+}: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -147,12 +153,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
             setOpen={setModalOpen}
           />
         )}
-        <AddUserModal
-          open={addModalOpen}
-          onClose={() => {
-            setAddModalOpen(false);
-          }}
-        />
+        <AddUserModal open={addModalOpen} onClose={handleCloseAddModal} />
         <Table stickyHeader size="small" aria-label="sticky table">
           <TableHead>
             <TableRow>
@@ -174,15 +175,6 @@ function CLientTable({ usersList, search }: UsersTableProps) {
                   )}
                 </TableCell>
               ))}
-              <TableCell sx={{ width: 30 }}>
-                <IconButton
-                  onClick={() => {
-                    setAddModalOpen(true);
-                  }}
-                >
-                  <Add />
-                </IconButton>
-              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -204,7 +196,7 @@ function CLientTable({ usersList, search }: UsersTableProps) {
                     ) : (
                       <StyledCell name="Self" />
                     )}
-                    <TableCell sx={{ display: "flex", p: "21px" }}>
+                    <TableCell sx={{ display: "flex" }}>
                       <Button
                         variant="contained"
                         color="primary"

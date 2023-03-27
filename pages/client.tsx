@@ -1,5 +1,6 @@
-import { Box, TextField, Typography } from "@mui/material";
 import React from "react";
+import { Add } from "@mui/icons-material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import Loader from "../src/components/loader";
 import CLientTable from "../src/components/Tables/clientUserTable";
 import { useGetUsersQuery } from "../src/store/services/api";
@@ -12,12 +13,18 @@ export default function Client() {
     email: "",
     role: "",
   });
+  const [addModalOpen, setAddModalOpen] = React.useState(false);
 
   const { data: usersList, isError, isLoading } = useGetUsersQuery({});
 
   const handleOnchangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch({ ...search, [e.target.name]: e.target.value });
   };
+
+  const handleCloseAddModal = () => {
+    setAddModalOpen(false);
+  };
+
   if (isError || isLoading || !usersList?.length) return <Loader />;
   const filteredtUserList = usersList.filter(
     (user) => user.role === UserRole.Client
@@ -35,35 +42,51 @@ export default function Client() {
       >
         Client Panel
       </Typography>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "left",
-          alignItems: "left",
-        }}
-      >
-        <TextField
-          label="Search user by name"
-          name="name"
-          variant="outlined"
-          value={search?.name}
-          color="primary"
-          size="small"
-          onChange={handleOnchangeInput}
-          sx={{ m: "2px" }}
-        />
-        <TextField
-          label="Search user by email"
-          name="email"
-          variant="outlined"
-          value={search?.email}
-          color="primary"
-          size="small"
-          onChange={handleOnchangeInput}
-          sx={{ m: "2px" }}
-        />
+      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "left",
+            alignItems: "left",
+          }}
+        >
+          <TextField
+            label="Search user by name"
+            name="name"
+            variant="outlined"
+            value={search?.name}
+            color="primary"
+            size="small"
+            onChange={handleOnchangeInput}
+            sx={{ m: "2px" }}
+          />
+          <TextField
+            label="Search user by email"
+            name="email"
+            variant="outlined"
+            value={search?.email}
+            color="primary"
+            size="small"
+            onChange={handleOnchangeInput}
+            sx={{ m: "2px" }}
+          />
+        </Box>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setAddModalOpen(true);
+          }}
+          startIcon={<Add />}
+        >
+          Add User
+        </Button>
       </Box>
-      <CLientTable usersList={filteredtUserList} search={search} />
+      <CLientTable
+        usersList={filteredtUserList}
+        search={search}
+        addModalOpen={addModalOpen}
+        handleCloseAddModal={handleCloseAddModal}
+      />
     </Box>
   );
 }
