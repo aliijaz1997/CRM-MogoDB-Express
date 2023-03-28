@@ -8,6 +8,7 @@ const notificationSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  seen: { type: Boolean, default: false },
 });
 
 const User = mongoose.model("Notification", notificationSchema);

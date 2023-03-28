@@ -1,31 +1,45 @@
 import * as React from "react";
 import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
+import { Box, Typography } from "@mui/material";
 
-export default function Loader() {
+const DottedLoader: React.FC<{ message: string }> = ({ message }) => {
   return (
     <Box
       sx={{
         position: "fixed",
         top: 0,
         left: 0,
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#F8F8F8AD",
+        right: 0,
+        bottom: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backdropFilter: "blur(5px)",
+        zIndex: 9999,
       }}
     >
-      <CircularProgress
-        color="info"
-        thickness={2}
+      <Box
         sx={{
-          position: "absolute",
-          left: "50%",
-          top: "30%",
-          width: "100px !important",
-          height: "100px !important",
-          zIndex: "9999",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
-      />
+      >
+        <CircularProgress sx={{ marginBottom: "1rem" }} />
+        <Typography variant="subtitle1" align="center">
+          {message}
+        </Typography>
+      </Box>
     </Box>
   );
-}
+};
+
+const Loader: React.FC = () => {
+  return (
+    <Box>
+      <DottedLoader message="Please Wait!" />
+    </Box>
+  );
+};
+
+export default Loader;

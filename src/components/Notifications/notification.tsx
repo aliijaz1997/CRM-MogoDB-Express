@@ -1,4 +1,15 @@
-import { Box, Popover, Typography } from "@mui/material";
+import { Person } from "@mui/icons-material";
+import {
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Popover,
+  Theme,
+  Typography,
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import React from "react";
 import { Notification } from "../../types";
 
@@ -13,25 +24,32 @@ const PopoverDropdown: React.FC<PopoverDropdownProps> = ({
   notifications,
   onClose,
 }) => {
+  const classes = useStyles({} as any);
+  const open = Boolean(anchorEl);
+
   return (
-    <Popover open={Boolean(anchorEl)} anchorEl={anchorEl} onClose={onClose}>
-      <Typography component="h6" variant="h4">
-        Notifications
-      </Typography>
-      {notifications.map((item, index) => (
-        <Box
-          sx={{
-            width: "250px",
-            borderRadius: "5px",
-            m: "10px",
-          }}
-          key={index}
-        >
-          <Typography sx={{ p: "8px", overflowWrap: "break-word" }}>
-            {item.description}
-          </Typography>
-        </Box>
-      ))}
+    <Popover
+      open={open}
+      anchorEl={anchorEl}
+      onClose={onClose}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "right",
+      }}
+      transformOrigin={{
+        vertical: "top",
+        horizontal: "right",
+      }}
+    >
+      <div className={classes.popover}>
+        <Typography className={classes.heading}>Notifications</Typography>
+        <Divider />
+        <List className={classes.list}>
+          {notifications.map((notification) => (
+            <ListItemWrapper notification={notification} />
+          ))}
+        </List>
+      </div>
     </Popover>
   );
 };
@@ -61,3 +79,43 @@ const NotificationDropDown: React.FC<NotificationDropDownProps> = ({
 };
 
 export default NotificationDropDown;
+
+interface ListItemProps {
+  notification: Notification;
+}
+
+const ListItemWrapper: React.FC<ListItemProps> = ({ notification }) => {
+  const classes = useStyles({ seen: notification.seen });
+
+  return (
+    <ListItem key={notification._id} className={classes.listItem}>
+      <ListItemIcon>
+        <Person />
+      </ListItemIcon>
+      <ListItemText primary={notification.description} />
+    </ListItem>
+  );
+};
+
+const useStyles = makeStyles((theme: Theme) => ({
+  popover: {
+    padding: "4px",
+  },
+  heading: {
+    fontWeight: "bold",
+    marginBottom: "2px",
+  },
+  list: {
+    width: "100%",
+    maxWidth: 360,
+  },
+  listItem: {
+    "&:hover": {
+      backgroundColor: theme.palette.text.secondary,
+    },
+
+    backgroundColor: (props: any) =>
+      props.seen ? "inherit" : theme.palette.action.hover,
+    borderBottom: `1px solid ${theme.palette.divider}`,
+  },
+}));

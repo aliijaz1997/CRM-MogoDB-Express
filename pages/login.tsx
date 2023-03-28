@@ -51,7 +51,7 @@ const Login: LoginProps = () => {
         toast.success("Logged in successfully");
       })
       .catch((err) => {
-        toast.error(`Error occurred : ${err}`);
+        toast.error("You have provided wrong email or password");
       });
   };
   return (

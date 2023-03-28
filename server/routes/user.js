@@ -27,6 +27,7 @@ router.route("/").post((req, res) => {
       .createUser({
         email,
         password: "P@$$w0rd",
+        displayName: fullName,
       })
       .then((userRecord) => {
         const newUser = new User({
@@ -38,13 +39,14 @@ router.route("/").post((req, res) => {
         });
 
         new Notification({
-          description: `${addedBy.name} created the user ${userRecord.displayName}`,
+          description: `${addedBy.name} created the ${fullName}`,
         }).save();
         newUser
           .save()
           .then(() => res.status(201).json("User Created by Admin!"))
           .catch((err) => res.status(400).json("Error Occurred is " + err));
-      });
+      })
+      .catch((err) => res.status(400).json(err));
     return;
   }
   const newUser = new User({
@@ -64,12 +66,13 @@ router.route("/").post((req, res) => {
 
 router.route("/").put((req, res) => {
   const { name, _id: id, role } = req.body;
-
   try {
     if (name && role && id) {
-      new Notification({
-        description: `The user has updated its name and role`,
-      }).save();
+      User.findById(id).then((user) => {
+        new Notification({
+          description: `${user.name} updated the details`,
+        }).save();
+      });
       User.updateOne({ _id: id }, { role, name })
         .then(() => {
           return res.status(204).json("User updated Successfully");
@@ -78,9 +81,12 @@ router.route("/").put((req, res) => {
     }
 
     if (role && id && !name) {
-      new Notification({
-        description: `The user ${name} has updated its role to ${role}`,
-      }).save();
+      User.findById(id).then((user) => {
+        new Notification({
+          description: `${user.name} changed the role to ${role}`,
+        }).save();
+      });
+
       User.updateOne({ _id: id }, { role })
         .then(() => {
           return res.status(204).json("User updated Successfully");
@@ -89,9 +95,12 @@ router.route("/").put((req, res) => {
     }
 
     if (id && name && !role) {
-      new Notification({
-        description: `The user has updated its name to ${name}`,
-      }).save();
+      User.findById(id).then((user) => {
+        new Notification({
+          description: `${user.name} changed the name to ${name}`,
+        }).save();
+      });
+
       User.updateOne({ _id: id }, { name })
         .then(() => {
           auth.updateUser(id, { displayName: name });
@@ -106,9 +115,12 @@ router.route("/").put((req, res) => {
 
 router.route("/").delete((req, res) => {
   const id = req.body.id;
-  new Notification({
-    description: ` user with ${id} is deleted `,
-  }).save();
+  User.findById(id).then((user) => {
+    new Notification({
+      description: `${user.name} is deleted by admin`,
+    }).save();
+  });
+
   User.deleteOne({ _id: id })
     .then(() => {
       auth.deleteUser(id);

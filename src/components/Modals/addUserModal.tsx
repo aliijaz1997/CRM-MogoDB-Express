@@ -1,8 +1,10 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Box, Button, Modal, TextField } from "@mui/material";
 import { AuthContext } from "../../context/authContext";
 import { useAddUserMutation } from "../../store/services/api";
-import { UserRole } from "../../types";
+import { ErrorResponse, UserRole } from "../../types";
+import { toast } from "react-toastify";
+import Loader from "../loader";
 
 const style = {
   position: "absolute" as "absolute",
@@ -27,8 +29,21 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  const [addUser] = useAddUserMutation();
+  const [addUser, { isError, error, isSuccess, isLoading }] =
+    useAddUserMutation();
   const { currentUser, user } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (isError) {
+      toast.error((error as ErrorResponse).data.message);
+    }
+    if (isSuccess) {
+      onClose();
+      setName("");
+      setEmail("");
+      toast.success("User added successfully");
+    }
+  }, [isError, isSuccess]);
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
   };
@@ -48,13 +63,10 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
           name: currentUser.displayName as string,
           role: user.role,
         },
-      }).then(() => {
-        onClose();
-        setName("");
-        setEmail("");
       });
     }
   };
+  if (isLoading) return <Loader />;
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>

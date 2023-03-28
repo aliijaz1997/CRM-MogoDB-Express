@@ -38,7 +38,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const classes = useStyles();
   const displayedUsers = useMemo(() => {

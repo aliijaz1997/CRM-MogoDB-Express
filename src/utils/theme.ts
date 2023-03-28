@@ -1,13 +1,17 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme, Theme } from "@mui/material/styles";
 
-export const CustomTheme = createTheme({
+export const CustomTheme: Theme = createTheme({
   palette: {
     primary: {
       main: "#2E3B55",
+      contrastText: "#FFFFFF",
+      dark: "#1D273A",
     },
     secondary: {
       main: "#FFB347   ",
       light: "#87CEFA",
+      contrastText: "#000000",
+      dark: "#C77C02",
     },
     text: {
       primary: "#333333",
@@ -16,6 +20,10 @@ export const CustomTheme = createTheme({
     background: {
       default: "#F7F7F7", // a light gray shade for the background
     },
+    action: {
+      hover: "#E0E0E0",
+    },
+    divider: "#E0E0E0",
   },
   typography: {
     fontFamily: "Roboto, sans-serif",
