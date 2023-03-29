@@ -2,11 +2,11 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
-export default function formatDateTime(utcString: string): string {
+export default function formatDateTime(utcString: string | Date): string {
   const dateTime = dayjs.utc(utcString);
   if (dateTime.isValid()) {
-    return dateTime.format("YYYY-MM-DD HH:mm:ss");
+    return dayjs(dateTime).tz("Asia/Karachi").format("MMMM D, YYYY h:mm A");
   } else {
-    return dayjs().format("YYYY-MM-DD HH:mm:ss");
+    return dayjs().tz("Asia/Karachi").format("MMMM D, YYYY h:mm A");
   }
 }

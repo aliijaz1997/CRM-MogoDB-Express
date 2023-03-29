@@ -3,6 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const userRouter = require("./routes/user");
 const notificationRouter = require("./routes/notification");
+const callRouter = require("./routes/call");
 const VerifyToken = require("./middlewere/verifyToken");
 require("dotenv").config();
 
@@ -21,6 +22,7 @@ mongooseConnection.once("open", () => {
 });
 app.use("/user", VerifyToken, userRouter);
 app.use("/notification", VerifyToken, notificationRouter);
+app.use("/calls", VerifyToken, callRouter);
 
 app.listen(port, () => {
   console.log(

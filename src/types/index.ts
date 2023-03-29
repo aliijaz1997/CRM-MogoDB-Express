@@ -28,3 +28,11 @@ export interface ErrorResponse {
   data: { code: string | number; message: string };
   status: string;
 }
+
+export interface CallLog {
+  _id: number;
+  createdAt: string | Date;
+  duration: number;
+  type: "incoming" | "outgoing";
+  notes: string;
+}

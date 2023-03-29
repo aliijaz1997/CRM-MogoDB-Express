@@ -1,11 +1,11 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { Notification, UserType } from "../../types";
+import { CallLog, Notification, UserType } from "../../types";
 import { baseQueryWithReauth } from "../common/baseQuery";
 
 export const apiSlice = createApi({
   reducerPath: "apiSlice",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Users", "User"],
+  tagTypes: ["Users", "User", "Notifications", "Calls", "Call"],
   endpoints: (builder) => ({
     getUsers: builder.query<UserType[], any>({
       query: () => {
@@ -73,7 +73,42 @@ export const apiSlice = createApi({
           method: "GET",
         };
       },
-      providesTags: ["Users", "User"],
+      providesTags: ["Users", "User", "Notifications"],
+    }),
+    updateNotification: builder.mutation<any, { body: Partial<Notification> }>({
+      query: ({ body }) => ({
+        url: `notification`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+    getCallLogs: builder.query<CallLog[], void>({
+      query: () => "/calls",
+      providesTags: ["Calls", "Call"],
+    }),
+    createCallLog: builder.mutation<CallLog, Partial<CallLog>>({
+      query: (callLog) => ({
+        url: "/calls",
+        method: "POST",
+        body: callLog,
+      }),
+      invalidatesTags: ["Calls"],
+    }),
+    updateCallLog: builder.mutation<CallLog, Partial<CallLog>>({
+      query: ({ _id, ...callLog }) => ({
+        url: `/calls/${_id}`,
+        method: "PUT",
+        body: callLog,
+      }),
+      invalidatesTags: ["Calls", "Call"],
+    }),
+    deleteCallLog: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/calls/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Calls"],
     }),
   }),
 });
@@ -85,4 +120,9 @@ export const {
   useUpdateUserMutation,
   useTemporaryAuthMutation,
   useGetNotificationsQuery,
+  useUpdateNotificationMutation,
+  useGetCallLogsQuery,
+  useCreateCallLogMutation,
+  useUpdateCallLogMutation,
+  useDeleteCallLogMutation,
 } = apiSlice;

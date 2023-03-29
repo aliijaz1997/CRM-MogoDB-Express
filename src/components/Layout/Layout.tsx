@@ -21,6 +21,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import {
   AccountCircle,
+  Call,
   ChevronLeft,
   GroupAdd,
   Logout,
@@ -93,6 +94,7 @@ export default function Layout(props: LayoutProps) {
       .slice(0, MAX_RECENT_COUNT);
   }, [notifications]);
 
+  const notificationCount = sortedNotifications.filter((n) => !n.seen).length;
   const showSelectedNav = (path: string) => {
     return router.pathname.includes(path) ? true : false;
   };
@@ -141,12 +143,7 @@ export default function Layout(props: LayoutProps) {
             <AccountCircle />
           </IconButton>
           <IconButton onClick={handlePopoverOpen} color="inherit">
-            <Badge
-              badgeContent={
-                sortedNotifications ? sortedNotifications.length : 0
-              }
-              color="secondary"
-            >
+            <Badge badgeContent={notificationCount} color="secondary">
               <NotificationsIcon />
             </Badge>
           </IconButton>
@@ -268,6 +265,34 @@ export default function Layout(props: LayoutProps) {
                 <ManageAccounts />
               </ListItemIcon>
               <ListItemText primary="Users" />
+            </ListItemButton>
+          )}
+          {user?.role !== UserRole.Client && (
+            <ListItemButton
+              onClick={() => {
+                router.push("/calls");
+              }}
+              sx={{
+                color: showSelectedNav("/calls")
+                  ? "text.primary"
+                  : "text.secondary",
+                "& .MuiListItemIcon-root": {
+                  color: "text.secondary",
+                },
+                bgcolor: showSelectedNav("/calls") ? "secondary.light" : "",
+                "&:hover": {
+                  cursor: "pointer",
+                  "& .MuiListItemIcon-root": {
+                    // styles for the ListItemIcon when it's a child of the ListItemButton and is hovered over
+                    color: "text.primary",
+                  },
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Call />
+              </ListItemIcon>
+              <ListItemText primary="Calls" />
             </ListItemButton>
           )}
           <Divider sx={{ my: 1 }} />

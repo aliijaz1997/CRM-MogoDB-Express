@@ -1,4 +1,9 @@
-import { Person } from "@mui/icons-material";
+import {
+  AccountCircle,
+  AccountCircleOutlined,
+  AccountCircleRounded,
+  Person,
+} from "@mui/icons-material";
 import {
   Divider,
   List,
@@ -11,6 +16,7 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import React from "react";
+import { useUpdateNotificationMutation } from "../../store/services/api";
 import { Notification } from "../../types";
 
 interface PopoverDropdownProps {
@@ -85,12 +91,21 @@ interface ListItemProps {
 }
 
 const ListItemWrapper: React.FC<ListItemProps> = ({ notification }) => {
-  const classes = useStyles({ seen: notification.seen });
+  const [updateNotification] = useUpdateNotificationMutation();
 
   return (
-    <ListItem key={notification._id} className={classes.listItem}>
+    <ListItem
+      onClick={() => {
+        updateNotification({ body: { _id: notification._id } });
+      }}
+      key={notification._id}
+      sx={{
+        backgroundColor: notification.seen ? "inherit" : "action.hover",
+        borderBottom: `1px solid divider`,
+      }}
+    >
       <ListItemIcon>
-        <Person />
+        <AccountCircleOutlined />
       </ListItemIcon>
       <ListItemText primary={notification.description} />
     </ListItem>
@@ -108,14 +123,5 @@ const useStyles = makeStyles((theme: Theme) => ({
   list: {
     width: "100%",
     maxWidth: 360,
-  },
-  listItem: {
-    "&:hover": {
-      backgroundColor: theme.palette.text.secondary,
-    },
-
-    backgroundColor: (props: any) =>
-      props.seen ? "inherit" : theme.palette.action.hover,
-    borderBottom: `1px solid ${theme.palette.divider}`,
   },
 }));
