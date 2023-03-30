@@ -1,6 +1,8 @@
+import timezone from "dayjs/plugin/timezone";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function formatDateTime(utcString: string | Date): string {
   const dateTime = dayjs.utc(utcString);

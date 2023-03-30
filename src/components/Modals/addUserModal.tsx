@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Box, Button, Modal, TextField } from "@mui/material";
+import { Box, Button, Modal, TextField, Typography } from "@mui/material";
 import { AuthContext } from "../../context/authContext";
 import { useAddUserMutation } from "../../store/services/api";
 import { ErrorResponse, UserRole } from "../../types";
@@ -70,6 +70,7 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
+        <Typography variant="h3">Add New User</Typography>
         <form onSubmit={handleSubmit}>
           <Box sx={{ m: "5px" }}>
             <TextField

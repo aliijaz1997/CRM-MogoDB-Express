@@ -52,7 +52,10 @@ const PopoverDropdown: React.FC<PopoverDropdownProps> = ({
         <Divider />
         <List className={classes.list}>
           {notifications.map((notification) => (
-            <ListItemWrapper notification={notification} />
+            <ListItemWrapper
+              key={notification._id}
+              notification={notification}
+            />
           ))}
         </List>
       </div>

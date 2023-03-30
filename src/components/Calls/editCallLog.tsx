@@ -11,8 +11,6 @@ import {
 import { CallLog } from "../../types/";
 import { useUpdateCallLogMutation } from "../../store/services/api";
 import dayjs from "dayjs";
-import Loader from "../loader";
-import formatDateTime from "../../helper/getDate";
 
 interface EditCallLogModalProps {
   open: boolean;

@@ -38,7 +38,14 @@ type SortOrder = "asc" | "desc";
 
 type SortBy = keyof Omit<UserType, "_id">;
 
-const columns = ["Name", "Email", "Created At", "Added By", "Action"];
+const columns = [
+  "Serial No.",
+  "Name",
+  "Email",
+  "Created At",
+  "Added By",
+  "Action",
+];
 
 function CLientTable({
   usersList,
@@ -83,7 +90,15 @@ function CLientTable({
         return nameMatch && emailMatch;
       })
       .slice(startIndex, endIndex);
-  }, [totalPages, itemsPerPage, currentPage, usersList, sortOrder, search]);
+  }, [
+    totalPages,
+    itemsPerPage,
+    currentPage,
+    usersList,
+    sortOrder,
+    search,
+    sortBy,
+  ]);
 
   const router = useRouter();
   const { CustomSignIn } = useContext(AuthContext);
@@ -92,6 +107,7 @@ function CLientTable({
   const [temporaryAuth] = useTemporaryAuthMutation();
 
   const handleSort = (selectedSortBy: SortBy) => {
+    console.log(sortBy, sortOrder);
     if (selectedSortBy === sortBy) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -169,6 +185,14 @@ function CLientTable({
                   {column !== "Action" && column !== "Added By" && (
                     <IconButton
                       onClick={() => {
+                        if (column === "Serial No.") {
+                          handleSort("serialNumber" as SortBy);
+                          return;
+                        }
+                        if (column === "Created At") {
+                          handleSort("createdAt" as SortBy);
+                          return;
+                        }
                         handleSort(column.toLowerCase() as SortBy);
                       }}
                     >
@@ -181,9 +205,10 @@ function CLientTable({
           </TableHead>
           <TableBody>
             {displayedUsers &&
-              displayedUsers.map((user) => {
+              displayedUsers.map((user, idx) => {
                 return (
                   <TableRow key={user._id} role="checkbox" tabIndex={-1}>
+                    <StyledCell name={`${user.serialNumber}`} />
                     <StyledCell name={user.name} />
                     <StyledCell
                       name={user.email}
@@ -198,7 +223,12 @@ function CLientTable({
                     ) : (
                       <StyledCell name="Self" />
                     )}
-                    <TableCell sx={{ display: "flex" }}>
+                    <TableCell
+                      sx={{
+                        display: "flex",
+                        border: "1px solid rgba(224, 224, 224, 1)",
+                      }}
+                    >
                       <Button
                         variant="contained"
                         color="primary"

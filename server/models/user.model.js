@@ -22,6 +22,7 @@ const userSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  serialNumber: { type: Number, required: true },
 });
 
 const User = mongoose.model("User", userSchema);

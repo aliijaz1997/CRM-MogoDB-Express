@@ -8,6 +8,7 @@ export interface UserType {
     role: UserRole;
   };
   createdAt: string;
+  serialNumber: number;
 }
 
 export enum UserRole {
@@ -15,6 +16,11 @@ export enum UserRole {
   Client = "client",
   Manager = "manager",
   Staff = "staff",
+}
+export enum Status {
+  PENDING = "pending",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
 }
 
 export interface Notification {
@@ -30,9 +36,13 @@ export interface ErrorResponse {
 }
 
 export interface CallLog {
-  _id: number;
+  _id: string;
   createdAt: string | Date;
   duration: number;
   type: "incoming" | "outgoing";
   notes: string;
+  serialNumber: number;
+  createdBy: { _id: string; name: string };
+  client: { _id: string; name: string };
+  status: Status;
 }

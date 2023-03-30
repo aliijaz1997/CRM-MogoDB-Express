@@ -39,7 +39,7 @@ export default function UpdateUserModal({
 
   const { user: currentUser } = React.useContext(AuthContext);
 
-  const [updateUser] = useUpdateUserMutation();
+  const [updateUser, { isLoading }] = useUpdateUserMutation();
 
   React.useEffect(() => {
     setName(user.name);
@@ -125,6 +125,7 @@ export default function UpdateUserModal({
           variant="contained"
           onClick={handleUpdateUser}
           startIcon={<Edit />}
+          disabled={isLoading}
         >
           Update
         </Button>

@@ -7,7 +7,7 @@ export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Users", "User", "Notifications", "Calls", "Call"],
   endpoints: (builder) => ({
-    getUsers: builder.query<UserType[], any>({
+    getUsers: builder.query<UserType[], void>({
       query: () => {
         return {
           url: `user`,
@@ -103,7 +103,7 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["Calls", "Call"],
     }),
-    deleteCallLog: builder.mutation<void, number>({
+    deleteCallLog: builder.mutation<void, string>({
       query: (id) => ({
         url: `/calls/${id}`,
         method: "DELETE",

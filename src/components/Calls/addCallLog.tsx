@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Button,
   Dialog,
@@ -8,12 +8,16 @@ import {
   MenuItem,
   TextField,
 } from "@mui/material";
-import { CallLog } from "../../types/index";
-import { useCreateCallLogMutation } from "../../store/services/api";
+import { CallLog, Status, UserRole } from "../../types/index";
+import {
+  useCreateCallLogMutation,
+  useGetUsersQuery,
+} from "../../store/services/api";
 import Loader from "../loader";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { AuthContext } from "../../context/authContext";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -28,22 +32,39 @@ const initialValueCall: Omit<CallLog, "_id"> = {
   duration: 0,
   type: "outgoing",
   notes: "",
+  serialNumber: 0,
+  client: { _id: "", name: "" },
+  createdBy: { _id: "", name: "" },
+  status: Status.PENDING,
 };
 
 export const AddCallLogModal: React.FC<AddCallLogModalProps> = ({
   open,
   onClose,
 }) => {
-  const [callLog, setCallLog] =
-    useState<Omit<CallLog, "_id">>(initialValueCall);
+  const { user } = useContext(AuthContext);
+  const [callLog, setCallLog] = useState<Omit<CallLog, "_id">>({
+    ...initialValueCall,
+    createdBy: { _id: user?._id as string, name: user?.name as string },
+  });
 
   const [createCallLog, { isLoading }] = useCreateCallLogMutation();
+  const { data: users = [] } = useGetUsersQuery();
+
+  const clientUsers = users.filter((u) => u.role === UserRole.Client);
 
   const handleCreateCallLog = async () => {
-    await createCallLog(callLog);
+    if (user) {
+      await createCallLog({
+        ...callLog,
+        createdBy: { _id: user._id, name: user.name },
+      });
+    }
     onClose();
     setCallLog(initialValueCall);
   };
+
+  if (!user) return <Loader />;
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -92,6 +113,29 @@ export const AddCallLogModal: React.FC<AddCallLogModalProps> = ({
         >
           <MenuItem value="incoming">Incoming</MenuItem>
           <MenuItem value="outgoing">Outgoing</MenuItem>
+        </TextField>
+        <TextField
+          select
+          label="Type"
+          value={callLog.client._id}
+          onChange={(event) => {
+            const _id = event.target.value;
+            const selectedUser = clientUsers.find((u) => u._id === _id);
+            if (selectedUser) {
+              setCallLog((prev) => ({
+                ...prev,
+                client: { _id: selectedUser._id, name: selectedUser.name },
+              }));
+            }
+          }}
+          fullWidth
+          margin="normal"
+        >
+          {clientUsers.map((c) => (
+            <MenuItem key={c._id} value={c._id}>
+              {c.name}
+            </MenuItem>
+          ))}
         </TextField>
         <TextField
           label="Notes"

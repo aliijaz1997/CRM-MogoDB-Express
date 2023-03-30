@@ -18,11 +18,15 @@ router.get("/:id", (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+  const callLogs = await CallLog.find();
   const callLog = new CallLog({
     createdAt: req.body.createdAt,
     duration: req.body.duration,
     type: req.body.type,
     notes: req.body.notes,
+    client: req.body.client,
+    createdBy: req.body.createdBy,
+    serialNumber: callLogs.length + 1,
   });
   try {
     const newCallLog = await callLog.save();
@@ -47,6 +51,9 @@ router.put("/:id", async (req, res) => {
   if (req.body.notes != null) {
     callLogObj.notes = req.body.notes;
   }
+  if (req.body.status != null) {
+    callLogObj.status = req.body.status;
+  }
   try {
     CallLog.updateOne({ _id: id }, { ...callLogObj }).then(() => {
       return res.status(204).json("Call updated Successfully");
@@ -57,8 +64,9 @@ router.put("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
   try {
-    await res.callLog.remove();
+    await CallLog.deleteOne({ _id: id });
     res.json({ message: "Call log deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

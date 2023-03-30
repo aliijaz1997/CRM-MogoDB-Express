@@ -19,6 +19,8 @@ import { Delete, Edit, ImportExport } from "@mui/icons-material";
 import { SearchType } from "../../../pages/admin/users";
 import { useStyles } from "./styles";
 import formatDateTime from "../../helper/getDate";
+import DeleteModal from "../Modals/deleteModal";
+import Loader from "../loader";
 
 interface UsersTableProps {
   usersList: UserType[];
@@ -29,7 +31,7 @@ type SortOrder = "asc" | "desc";
 
 type SortBy = keyof Omit<UserType, "_id">;
 
-const columns = ["Name", "Email", "Created At", "Role", "Action"];
+const columns = ["Serial No.", "Name", "Email", "Created At", "Role", "Action"];
 
 function UsersTable({ usersList, search }: UsersTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -38,6 +40,7 @@ function UsersTable({ usersList, search }: UsersTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [openDeleteModal, setDeleteModal] = useState(false);
   const itemsPerPage = 10;
 
   const classes = useStyles();
@@ -71,9 +74,17 @@ function UsersTable({ usersList, search }: UsersTableProps) {
         return nameMatch && emailMatch && roleMatch;
       })
       .slice(startIndex, endIndex);
-  }, [totalPages, itemsPerPage, currentPage, usersList, sortOrder, search]);
+  }, [
+    totalPages,
+    itemsPerPage,
+    currentPage,
+    usersList,
+    sortOrder,
+    search,
+    sortBy,
+  ]);
 
-  const [deleteUser] = useDeleteUserMutation();
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
   const handleSort = (selectedSortBy: SortBy) => {
     if (selectedSortBy === sortBy) {
@@ -94,6 +105,8 @@ function UsersTable({ usersList, search }: UsersTableProps) {
       </TableCell>
     );
   };
+
+  if (isDeleting) return <Loader />;
 
   return (
     <Box
@@ -116,6 +129,24 @@ function UsersTable({ usersList, search }: UsersTableProps) {
             setOpen={setModalOpen}
           />
         )}
+        <DeleteModal
+          open={openDeleteModal}
+          onClose={() => {
+            setDeleteModal(false);
+          }}
+          onDelete={() => {
+            if (selectedUser) {
+              deleteUser({ id: selectedUser._id })
+                .then(() => {
+                  toast.success("User deleted Successfully");
+                  setDeleteModal(false);
+                })
+                .catch((e) => {
+                  toast.error(`Error Occurred: ${e}`);
+                });
+            }
+          }}
+        />
         <Table stickyHeader size="small" aria-label="sticky table">
           <TableHead>
             <TableRow>
@@ -129,6 +160,14 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                   {column !== "Action" && (
                     <IconButton
                       onClick={() => {
+                        if (column === "Serial No.") {
+                          handleSort("serialNumber" as SortBy);
+                          return;
+                        }
+                        if (column === "Created At") {
+                          handleSort("createdAt" as SortBy);
+                          return;
+                        }
                         handleSort(column.toLowerCase() as SortBy);
                       }}
                     >
@@ -144,11 +183,17 @@ function UsersTable({ usersList, search }: UsersTableProps) {
               displayedUsers.map((user) => {
                 return (
                   <TableRow key={user._id} role="checkbox" tabIndex={-1}>
+                    <StyledCell name={`${user.serialNumber}`} />
                     <StyledCell name={user.name} />
                     <StyledCell name={user.email} />
                     <StyledCell name={formatDateTime(user.createdAt)} />
                     <StyledCell name={user.role} />
-                    <TableCell sx={{ display: "flex" }}>
+                    <TableCell
+                      sx={{
+                        display: "flex",
+                        border: "1px solid rgba(224, 224, 224, 1)",
+                      }}
+                    >
                       <Button
                         variant="contained"
                         color="primary"
@@ -168,13 +213,8 @@ function UsersTable({ usersList, search }: UsersTableProps) {
                         size="small"
                         sx={{ ml: "5px" }}
                         onClick={() => {
-                          deleteUser({ id: user._id })
-                            .then(() => {
-                              toast.success("User deleted Successfully");
-                            })
-                            .catch((e) => {
-                              toast.error(`Error Occurred: ${e}`);
-                            });
+                          setDeleteModal(true);
+                          setSelectedUser(user);
                         }}
                         startIcon={<Delete />}
                       >

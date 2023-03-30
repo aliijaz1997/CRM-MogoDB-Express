@@ -16,12 +16,13 @@ router.route("/:id").get((req, res) => {
     .catch((err) => res.status(400).json("Error Occurred is " + err));
 });
 
-router.route("/").post((req, res) => {
+router.route("/").post(async (req, res) => {
   _id = req.body.id;
   fullName = req.body.name;
   email = req.body.email;
   role = req.body.role;
   addedBy = req.body.addedBy;
+  serialNumber = (await User.find()).length + 1;
   if (addedBy) {
     auth
       .createUser({
@@ -36,6 +37,7 @@ router.route("/").post((req, res) => {
           email,
           role,
           addedBy,
+          serialNumber,
         });
 
         new Notification({
