@@ -1,24 +1,17 @@
 import { useContext, useEffect, useState } from "react";
-import { Box, Button, Modal, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+} from "@mui/material";
 import { AuthContext } from "../../context/authContext";
 import { useAddUserMutation } from "../../store/services/api";
 import { ErrorResponse, UserRole } from "../../types";
 import { toast } from "react-toastify";
 import Loader from "../loader";
-
-const style = {
-  position: "absolute" as "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-};
 
 interface Props {
   open: boolean;
@@ -28,6 +21,8 @@ interface Props {
 const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [nameError, setNameError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
 
   const [addUser, { isError, error, isSuccess, isLoading }] =
     useAddUserMutation();
@@ -45,11 +40,23 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
     }
   }, [isError, isSuccess]);
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setName(e.target.value);
+    const inputName = e.target.value;
+    setName(inputName);
+    if (!inputName.match(/^[a-zA-Z0-9 ]+$/)) {
+      setNameError(true);
+    } else {
+      setNameError(false);
+    }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+    const inputEmail = e.target.value;
+    setEmail(inputEmail);
+    if (!inputEmail.match(/\S+@\S+\.\S+/)) {
+      setEmailError(true);
+    } else {
+      setEmailError(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -66,32 +73,53 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
       });
     }
   };
-  if (isLoading) return <Loader />;
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        <Typography variant="h3">Add New User</Typography>
-        <form onSubmit={handleSubmit}>
-          <Box sx={{ m: "5px" }}>
-            <TextField
-              label="Name"
-              variant="outlined"
-              value={name}
-              onChange={handleNameChange}
-            />
-            <TextField
-              label="Email"
-              variant="outlined"
-              value={email}
-              onChange={handleEmailChange}
-            />
-          </Box>
-          <Button type="submit" variant="contained">
-            Add User
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Add New Client</DialogTitle>
+      <form onSubmit={handleSubmit}>
+        <DialogContent>
+          <TextField
+            label="Name"
+            variant="outlined"
+            value={name}
+            onChange={handleNameChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            fullWidth
+            margin="normal"
+            error={nameError}
+            helperText={nameError && "Please enter a valid name."}
+          />
+          <TextField
+            label="Email"
+            variant="outlined"
+            value={email}
+            onChange={handleEmailChange}
+            InputLabelProps={{
+              shrink: true,
+              required: true,
+            }}
+            fullWidth
+            margin="normal"
+            error={emailError}
+            helperText={emailError && "Please enter a valid email."}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} disabled={isLoading}>
+            Cancel
           </Button>
-        </form>
-      </Box>
-    </Modal>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isLoading || nameError || emailError}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 };
 

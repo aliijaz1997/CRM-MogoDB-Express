@@ -1,28 +1,18 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Modal from "@mui/material/Modal";
-import { UserRole, UserType } from "../../types";
-import { Button, MenuItem, TextField } from "@mui/material";
+import { UserType } from "../../types";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+} from "@mui/material";
 import { toast } from "react-toastify";
 import { canThisRoleEdit } from "../../helper/roleAuthor";
 import { useUpdateUserMutation } from "../../store/services/api";
 import { AuthContext } from "../../context/authContext";
-import { Edit, Update } from "@mui/icons-material";
-
-const style = {
-  position: "absolute" as "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-};
+import { Edit } from "@mui/icons-material";
 
 interface UserModalUpdateProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,7 +25,7 @@ export default function UpdateUserModal({
   user,
 }: UserModalUpdateProps) {
   const [name, setName] = React.useState(user.name);
-  const [role, setRole] = React.useState(user.role);
+  const [nameError, setNameError] = React.useState(false);
 
   const { user: currentUser } = React.useContext(AuthContext);
 
@@ -43,8 +33,17 @@ export default function UpdateUserModal({
 
   React.useEffect(() => {
     setName(user.name);
-    setRole(user.role);
   }, [user]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputName = e.target.value;
+    setName(inputName);
+    if (!inputName.match(/^[a-zA-Z0-9 ]+$/)) {
+      setNameError(true);
+    } else {
+      setNameError(false);
+    }
+  };
 
   const handleUpdateUser = () => {
     if (user) {
@@ -55,11 +54,10 @@ export default function UpdateUserModal({
         });
         if (!allowRoleEdit) {
           setName(user.name);
-          setRole(user.role);
           return;
         }
       }
-      updateUser({ body: { _id: user._id, name, role } })
+      updateUser({ body: { _id: user._id, name } })
         .then(() => {
           toast.success("User updated Successfully");
         })
@@ -69,67 +67,58 @@ export default function UpdateUserModal({
     }
   };
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={() => {
         setOpen(false);
       }}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
     >
-      <Box sx={style}>
-        <Typography
-          id="modal-modal-title"
-          color="primary"
-          variant="h3"
-          component="h2"
-        >
-          User details
-        </Typography>
-        <Box sx={{ display: "flex", m: "15px" }}>
-          <TextField
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-            }}
-            sx={{ m: "5px" }}
-            size="small"
-          />
-          <TextField
-            size="small"
-            value={user.email}
-            sx={{ m: "5px" }}
-            InputProps={{ readOnly: true }}
-          />
-        </Box>
-        <Box>
-          <TextField
-            name="role"
-            color="primary"
-            variant="standard"
-            size="small"
-            select
-            value={role}
-            onChange={(e) => {
-              setRole(e.target.value as UserRole);
-            }}
-          >
-            <MenuItem value="client">Client</MenuItem>
-            <MenuItem value="admin">Admin</MenuItem>
-            <MenuItem value="staff">Staff</MenuItem>
-            <MenuItem value="manager">Manager</MenuItem>
-          </TextField>
-        </Box>
+      <DialogTitle> User details</DialogTitle>
+      <DialogContent>
+        <TextField
+          label="Name"
+          variant="outlined"
+          value={name}
+          onChange={handleNameChange}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          fullWidth
+          margin="normal"
+          error={nameError}
+          helperText={nameError && "Please enter a valid name."}
+        />
+        <TextField
+          label="Email"
+          variant="outlined"
+          value={user.email}
+          InputLabelProps={{
+            shrink: true,
+            required: true,
+          }}
+          fullWidth
+          margin="normal"
+          disabled={true}
+        />
+      </DialogContent>
+      <DialogActions>
         <Button
-          sx={{ alignSelf: "flex-start", m: "10px" }}
-          variant="contained"
-          onClick={handleUpdateUser}
-          startIcon={<Edit />}
+          onClick={() => {
+            setOpen(false);
+          }}
           disabled={isLoading}
         >
-          Update
+          Cancel
         </Button>
-      </Box>
-    </Modal>
+        <Button
+          onClick={handleUpdateUser}
+          startIcon={<Edit />}
+          disabled={isLoading || nameError}
+          variant="contained"
+        >
+          update
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

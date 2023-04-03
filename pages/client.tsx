@@ -15,7 +15,7 @@ export default function Client() {
   });
   const [addModalOpen, setAddModalOpen] = React.useState(false);
 
-  const { data: usersList, isError, isLoading } = useGetUsersQuery({});
+  const { data: usersList, isError, isLoading } = useGetUsersQuery();
 
   const handleOnchangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch({ ...search, [e.target.name]: e.target.value });
@@ -35,7 +35,7 @@ export default function Client() {
         sx={{
           display: "flex",
           justifyContent: "left",
-          mb: 1,
+          m: 3,
         }}
         variant="h3"
         component="h1"
@@ -47,11 +47,12 @@ export default function Client() {
           sx={{
             display: "flex",
             justifyContent: "left",
-            alignItems: "left",
+            alignItems: "center",
           }}
         >
+          <Typography variant="h6">Filters</Typography>
           <TextField
-            label="Search user by name"
+            label="Search client by name"
             name="name"
             variant="outlined"
             value={search?.name}
@@ -61,7 +62,7 @@ export default function Client() {
             sx={{ m: "2px" }}
           />
           <TextField
-            label="Search user by email"
+            label="Search client by email"
             name="email"
             variant="outlined"
             value={search?.email}
@@ -78,7 +79,7 @@ export default function Client() {
           }}
           startIcon={<Add />}
         >
-          Add User
+          Add Client
         </Button>
       </Box>
       <CLientTable

@@ -17,7 +17,7 @@ export default function ManageUsers() {
     role: "",
   });
 
-  const { data: usersList, isError, isLoading } = useGetUsersQuery({});
+  const { data: usersList, isError, isLoading } = useGetUsersQuery();
 
   const handleOnchangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch({ ...search, [e.target.name]: e.target.value });
@@ -34,7 +34,7 @@ export default function ManageUsers() {
         sx={{
           display: "flex",
           justifyContent: "left",
-          mb: 1,
+          m: 3,
         }}
         variant="h3"
         component="h1"
@@ -45,9 +45,10 @@ export default function ManageUsers() {
         sx={{
           display: "flex",
           justifyContent: "left",
-          alignItems: "left",
+          alignItems: "center",
         }}
       >
+        <Typography variant="h6">Filters</Typography>
         <TextField
           label="Search user by name"
           name="name"

@@ -8,10 +8,10 @@ export const CustomTheme: Theme = createTheme({
       dark: "#1D273A",
     },
     secondary: {
-      main: "#FFB347",
+      main: "#ED5E68",
       light: "#87CEFA",
-      contrastText: "#000000",
-      dark: "#C77C02",
+      contrastText: "#FFFFFF",
+      dark: "#D2042D",
     },
     text: {
       primary: "#333333",

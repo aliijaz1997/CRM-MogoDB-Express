@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -15,6 +15,8 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Modal,
+  TextField,
 } from "@mui/material";
 import { Add, Delete, Edit, PhoneCallback } from "@mui/icons-material";
 import {
@@ -31,6 +33,10 @@ import { styled } from "@mui/material/styles";
 import DeleteModal from "../src/components/Modals/deleteModal";
 import { AuthContext } from "../src/context/authContext";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+
+dayjs.extend(isBetween);
 
 interface CallLogTableProps {}
 type FilterType = "all" | "incoming" | "outgoing";
@@ -40,6 +46,12 @@ export default function CallLogTable() {
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openEditModal, setEditModal] = useState(false);
   const [openDeleteModal, setDeleteModal] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [filterDates, setFilterDates] = useState<{
+    startDate: string | null;
+    endDate: string | null;
+  }>({ startDate: null, endDate: null });
+
   const [filter, setFilter] = useState<FilterType>("all");
 
   const { user } = useContext(AuthContext);
@@ -48,14 +60,30 @@ export default function CallLogTable() {
   const [deleteCallLog, { isLoading: isDeleting }] = useDeleteCallLogMutation();
   const [updateCallLog, { isLoading: isUpdating }] = useUpdateCallLogMutation();
 
-  const callLogsWithRole =
-    user && user.role === UserRole.Admin
-      ? callLogs
-      : callLogs.filter((c) => c.createdBy._id === user?._id);
-  const filteredLogs =
-    filter === "all"
-      ? callLogsWithRole
-      : callLogsWithRole.filter((log) => log.type === filter);
+  const filteredCallLogs = useMemo(() => {
+    const currentRoleLogs =
+      user && user.role === UserRole.Admin
+        ? callLogs
+        : callLogs.filter((c) => c.createdBy._id === user?._id);
+
+    if (!filterDates.startDate || !filterDates.endDate) {
+      return currentRoleLogs;
+    }
+    const startDate = dayjs(filterDates.startDate).startOf("day");
+    const endDate = dayjs(filterDates.endDate).endOf("day");
+
+    return currentRoleLogs.filter((callLog) =>
+      dayjs(callLog.createdAt).isBetween(startDate, endDate)
+    );
+  }, [filterDates, callLogs]);
+
+  const handleModalOpen = () => {
+    setIsModalVisible(true);
+  };
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setSelectedCallLog(null);
+  };
 
   const handleDeleteCallLog = async (id: string) => {
     if (id) {
@@ -69,16 +97,49 @@ export default function CallLogTable() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Box>
-          <Select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as FilterType)}
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="incoming">Incoming</MenuItem>
-            <MenuItem value="outgoing">Outgoing</MenuItem>
-          </Select>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mb: 2,
+          mt: 2,
+        }}
+      >
+        <Box sx={{ display: "flex" }}>
+          <Box>
+            <Select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as FilterType)}
+              size="small"
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="incoming">Incoming</MenuItem>
+              <MenuItem value="outgoing">Outgoing</MenuItem>
+            </Select>
+          </Box>
+          <TextField
+            label="Start Date"
+            type="date"
+            value={filterDates.startDate ?? ""}
+            onChange={(event) =>
+              setFilterDates({ ...filterDates, startDate: event.target.value })
+            }
+            InputLabelProps={{ shrink: true }}
+            margin="normal"
+            size="small"
+          />
+
+          <TextField
+            label="End Date"
+            type="date"
+            value={filterDates.endDate ?? ""}
+            onChange={(event) =>
+              setFilterDates({ ...filterDates, endDate: event.target.value })
+            }
+            InputLabelProps={{ shrink: true }}
+            margin="normal"
+            size="small"
+          />
         </Box>
         <Typography variant="h3">Call Logs</Typography>
         <Button
@@ -110,7 +171,7 @@ export default function CallLogTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredLogs.map((callLog) => (
+            {filteredCallLogs.map((callLog) => (
               <TableRow key={callLog._id}>
                 <TableCell>{callLog.serialNumber}</TableCell>
                 <TableCell>
@@ -135,7 +196,24 @@ export default function CallLogTable() {
                 </TableCell>
                 <TableCell>{callLog.client.name}</TableCell>
                 <TableCell>{callLog.createdBy.name}</TableCell>
-                <TableCell>{callLog.notes}</TableCell>
+                <TableCell>
+                  <Typography>
+                    {callLog.notes.substring(0, 35)}...{" "}
+                    <span
+                      onClick={() => {
+                        handleModalOpen();
+                        setSelectedCallLog(callLog);
+                      }}
+                      style={{
+                        color: "text.primary",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                      }}
+                    >
+                      show more
+                    </span>
+                  </Typography>
+                </TableCell>
                 <TableCell>
                   <Button
                     sx={{
@@ -157,48 +235,40 @@ export default function CallLogTable() {
                           _id: callLog._id,
                           status: Status.COMPLETED,
                         });
-                      } else if (callLog.status === Status.COMPLETED) {
-                        updateCallLog({
-                          _id: callLog._id,
-                          status: Status.CANCELLED,
-                        });
-                      } else {
-                        updateCallLog({
-                          _id: callLog._id,
-                          status: Status.PENDING,
-                        });
                       }
                     }}
+                    disabled={isUpdating}
                   >
-                    {isUpdating ? (
-                      <CircularProgress size={24} />
-                    ) : (
-                      callLog.status
-                    )}
+                    {callLog.status}
                   </Button>
                 </TableCell>
                 <TableCell sx={{ display: "flex" }} align="right">
-                  <IconButton
-                    aria-label="delete"
+                  <Button
                     disabled={isDeleting}
                     onClick={() => {
                       setDeleteModal(true);
                       setSelectedCallLog(callLog);
                     }}
-                    color="primary"
+                    color="secondary"
+                    sx={{ ml: "5px" }}
+                    startIcon={<Delete />}
+                    variant="contained"
+                    size="small"
                   >
-                    <Delete />
-                  </IconButton>
-                  <IconButton
-                    aria-label="delete"
+                    Delete
+                  </Button>
+                  <Button
                     onClick={() => {
                       setSelectedCallLog(callLog);
                       setEditModal(true);
                     }}
                     color="primary"
+                    startIcon={<Edit />}
+                    variant="contained"
+                    size="small"
                   >
-                    <Edit />
-                  </IconButton>
+                    Edit
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -219,6 +289,28 @@ export default function CallLogTable() {
           }}
           callLog={selectedCallLog}
         />
+      )}
+      {selectedCallLog && (
+        <Modal
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          open={isModalVisible}
+          onClose={handleModalClose}
+        >
+          <Box
+            sx={{
+              width: "80vw",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              bgcolor: "white",
+            }}
+          >
+            <Typography sx={{ m: "1rem" }}>{selectedCallLog.notes}</Typography>
+          </Box>
+        </Modal>
       )}
       <DeleteModal
         open={openDeleteModal}

@@ -22,16 +22,18 @@ export default function Home() {
     id: currentUser?.uid as string,
   });
   React.useEffect(() => {
-    if (user) {
-      token
-        ? user.role !== UserRole.Client
-          ? router.push("/admin")
-          : router.push("/")
-        : router.push("/login");
-    }
+    token
+      ? user?.role !== UserRole.Client
+        ? router.push("/admin")
+        : router.push("/")
+      : router.push("/login");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, user?.role]);
-
+  console.log(
+    user,
+    token ? (user?.role !== UserRole.Client ? "admin" : "index") : "login"
+  );
   if (isError || isLoading || !user) {
     return <Loader />;
   }
