@@ -6,17 +6,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  IconButton,
   Box,
   Button,
   Theme,
   Typography,
   Select,
   MenuItem,
-  CircularProgress,
   Modal,
   TextField,
+  Pagination,
 } from "@mui/material";
 import { Add, Delete, Edit, PhoneCallback } from "@mui/icons-material";
 import {
@@ -38,7 +36,7 @@ import isBetween from "dayjs/plugin/isBetween";
 
 dayjs.extend(isBetween);
 
-interface CallLogTableProps {}
+const PAGE_SIZE = 6;
 type FilterType = "all" | "incoming" | "outgoing";
 
 export default function CallLogTable() {
@@ -51,31 +49,53 @@ export default function CallLogTable() {
     startDate: string | null;
     endDate: string | null;
   }>({ startDate: null, endDate: null });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [search, setSearch] = useState("");
 
   const [filter, setFilter] = useState<FilterType>("all");
 
   const { user } = useContext(AuthContext);
+  const isAdmin = user && user.role === UserRole.Admin;
 
   const { data: callLogs = [], isLoading } = useGetCallLogsQuery();
   const [deleteCallLog, { isLoading: isDeleting }] = useDeleteCallLogMutation();
   const [updateCallLog, { isLoading: isUpdating }] = useUpdateCallLogMutation();
 
   const filteredCallLogs = useMemo(() => {
-    const currentRoleLogs =
-      user && user.role === UserRole.Admin
-        ? callLogs
-        : callLogs.filter((c) => c.createdBy._id === user?._id);
+    const startIndex = (page - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
 
-    if (!filterDates.startDate || !filterDates.endDate) {
-      return currentRoleLogs;
-    }
+    const currentRoleLogs = isAdmin
+      ? callLogs
+      : callLogs.filter((c) => c.createdBy._id === user?._id);
+
+    const totalPages = Math.ceil(currentRoleLogs.length / PAGE_SIZE);
+    setTotalPages(totalPages);
+
     const startDate = dayjs(filterDates.startDate).startOf("day");
     const endDate = dayjs(filterDates.endDate).endOf("day");
 
-    return currentRoleLogs.filter((callLog) =>
-      dayjs(callLog.createdAt).isBetween(startDate, endDate)
-    );
-  }, [filterDates, callLogs]);
+    const filteredLogs = currentRoleLogs.filter((callLog) => {
+      if ((filterDates.startDate || filterDates.endDate) && filter === "all") {
+        return dayjs(callLog.createdAt).isBetween(startDate, endDate);
+      } else if (
+        (filterDates.startDate || filterDates.endDate) &&
+        filter !== "all"
+      ) {
+        return (
+          dayjs(callLog.createdAt).isBetween(startDate, endDate) &&
+          callLog.type === filter
+        );
+      } else {
+        return true;
+      }
+    });
+
+    return filteredLogs
+      .filter((c) => c.client.name.toLowerCase().includes(search.toLowerCase()))
+      .slice(startIndex, endIndex);
+  }, [filterDates, callLogs, filter, page, search]);
 
   const handleModalOpen = () => {
     setIsModalVisible(true);
@@ -83,6 +103,9 @@ export default function CallLogTable() {
   const handleModalClose = () => {
     setIsModalVisible(false);
     setSelectedCallLog(null);
+  };
+  const handleChangePage = (_: React.ChangeEvent<unknown>, newPage: number) => {
+    setPage(newPage);
   };
 
   const handleDeleteCallLog = async (id: string) => {
@@ -101,16 +124,18 @@ export default function CallLogTable() {
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           mb: 2,
           mt: 2,
         }}
       >
-        <Box sx={{ display: "flex" }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box>
             <Select
               value={filter}
               onChange={(e) => setFilter(e.target.value as FilterType)}
               size="small"
+              sx={{ mt: 1 }}
             >
               <MenuItem value="all">All</MenuItem>
               <MenuItem value="incoming">Incoming</MenuItem>
@@ -140,6 +165,18 @@ export default function CallLogTable() {
             margin="normal"
             size="small"
           />
+          {isAdmin && (
+            <TextField
+              size="small"
+              label="Filter with Client name"
+              variant="outlined"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
+              sx={{ mt: 1 }}
+            />
+          )}
         </Box>
         <Typography variant="h3">Call Logs</Typography>
         <Button
@@ -275,6 +312,14 @@ export default function CallLogTable() {
           </TableBody>
         </Table>
       </StyledTableContainer>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+        <Pagination
+          count={totalPages}
+          onChange={handleChangePage}
+          showFirstButton
+          showLastButton
+        />
+      </Box>
       <AddCallLogModal
         open={openAddModal}
         onClose={() => {

@@ -53,7 +53,7 @@ interface LayoutProps {
 const MAX_RECENT_COUNT = 8;
 
 export default function Layout(props: LayoutProps) {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
   );

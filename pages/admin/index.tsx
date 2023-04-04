@@ -2,6 +2,7 @@ import { Box, Grid, Paper } from "@mui/material";
 import { useRouter } from "next/router";
 import React from "react";
 import { useSelector } from "react-redux";
+import Calendar from "../../src/components/Calender/calender";
 import Chart from "../../src/components/Dashboard/chart";
 import Deposits from "../../src/components/Dashboard/deposit";
 import Orders from "../../src/components/Dashboard/orders";
@@ -79,6 +80,9 @@ export default function HomeAdmin() {
           >
             <Orders />
           </Paper>
+        </Grid>
+        <Grid item xs={12}>
+          <Calendar />
         </Grid>
       </Grid>
     </Box>

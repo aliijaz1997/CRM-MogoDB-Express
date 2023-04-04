@@ -2,7 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   presets: ["next/babel"],
-  transpilePackages: ["@mui/material"],
+  transpilePackages: [
+    "@mui/material",
+    "@fullcalendar/react",
+    "@fullcalendar/daygrid",
+  ],
 };
 
 module.exports = nextConfig;
