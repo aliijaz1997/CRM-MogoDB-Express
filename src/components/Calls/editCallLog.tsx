@@ -8,14 +8,14 @@ import {
   MenuItem,
   TextField,
 } from "@mui/material";
-import { CallLog, Status } from "../../types/";
+import { CallLog, ModifiedCallLog, Status } from "../../types/";
 import { useUpdateCallLogMutation } from "../../store/services/api";
 import dayjs from "dayjs";
 
 interface EditCallLogModalProps {
   open: boolean;
   onClose: () => void;
-  callLog: CallLog;
+  callLog: ModifiedCallLog;
 }
 
 export const EditCallLogModal: React.FC<EditCallLogModalProps> = ({
@@ -23,7 +23,8 @@ export const EditCallLogModal: React.FC<EditCallLogModalProps> = ({
   onClose,
   callLog,
 }) => {
-  const [updatedCallLog, setUpdatedCallLog] = useState<CallLog>(callLog);
+  const [updatedCallLog, setUpdatedCallLog] =
+    useState<ModifiedCallLog>(callLog);
   const [notesError, setNotesError] = useState(false);
 
   const [updateCallLog, { isLoading }] = useUpdateCallLogMutation();
@@ -35,7 +36,7 @@ export const EditCallLogModal: React.FC<EditCallLogModalProps> = ({
   const handleUpdateCallLog = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (notesError) return;
-    await updateCallLog(updatedCallLog);
+    await updateCallLog({ ...updatedCallLog, _id: updatedCallLog.id });
   };
 
   return (

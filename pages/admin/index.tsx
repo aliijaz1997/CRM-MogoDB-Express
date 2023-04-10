@@ -38,7 +38,6 @@ export default function HomeAdmin() {
     return <Loader />;
   }
 
-  console.log({ isError, isLoading, user });
   return (
     <Box>
       <Grid container spacing={3}>

@@ -17,6 +17,7 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.10",
     "@mui/styles": "^5.11.13",
+    "@mui/x-data-grid": "^6.1.0",
     "@next/font": "13.1.0",
     "@reduxjs/toolkit": "^1.9.1",
     "@types/node": "18.11.17",

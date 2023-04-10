@@ -3,8 +3,66 @@ const CallLog = require("../models/call.model");
 
 router.get("/", async (req, res) => {
   try {
-    const callLogs = await CallLog.find();
-    res.status(200).json(callLogs);
+    let { page, limit, startDate, endDate, sort } = req.query;
+    const filters = {};
+    Object.entries(req.query).forEach(([field, value]) => {
+      if (value) {
+        const [fieldName, operator] = field.split("_");
+        switch (operator) {
+          case "contains":
+            filters[fieldName] = { $regex: new RegExp(value, "i") };
+            break;
+          case "equals":
+            filters[fieldName] = value;
+            break;
+          case "notEquals":
+            filters[fieldName] = { $ne: value };
+            break;
+          case "startsWith":
+            filters[fieldName] = { $regex: new RegExp(`^${value}`, "i") };
+            break;
+          case "endsWith":
+            filters[fieldName] = { $regex: new RegExp(`${value}$`, "i") };
+            break;
+          case "isEmpty":
+            filters[fieldName] = "";
+            break;
+          case "isNotEmpty":
+            filters[fieldName] = { $ne: "" };
+            break;
+          case "isAnyOf":
+            filters[fieldName] = { $in: value.split(",") };
+            break;
+          default:
+            break;
+        }
+      }
+    });
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    const skip = (page - 1) * limit;
+    const query = {};
+    if (startDate && endDate) {
+      query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    }
+    const sortObj = {};
+    if (sort) {
+      const sortArr = sort.split(",");
+      sortArr.forEach((sortItem) => {
+        const [field, sortDirection] = sortItem.split(":");
+        sortObj[field] = sortDirection;
+      });
+    }
+    const totalLogs = await CallLog.countDocuments(query);
+    let callLogsQuery = CallLog.find({ ...query, ...filters })
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit);
+    const callLogs = await callLogsQuery.exec();
+    res.status(200).json({
+      totalLogs,
+      callLogs,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

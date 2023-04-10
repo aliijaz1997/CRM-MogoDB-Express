@@ -46,3 +46,5 @@ export interface CallLog {
   client: { _id: string; name: string };
   status: Status;
 }
+
+export type ModifiedCallLog = Omit<CallLog, "_id"> & { id: string };

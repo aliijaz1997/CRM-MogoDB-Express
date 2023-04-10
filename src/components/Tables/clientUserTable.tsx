@@ -107,7 +107,6 @@ function CLientTable({
   const [temporaryAuth] = useTemporaryAuthMutation();
 
   const handleSort = (selectedSortBy: SortBy) => {
-    console.log(sortBy, sortOrder);
     if (selectedSortBy === sortBy) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {

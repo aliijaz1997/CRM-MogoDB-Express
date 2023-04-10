@@ -83,8 +83,12 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["Notifications"],
     }),
-    getCallLogs: builder.query<CallLog[], void>({
-      query: () => "/calls",
+    getCallLogs: builder.query<
+      { callLogs: CallLog[]; totalLogs: number },
+      { page?: number; limit?: number; sort?: string; filter?: string }
+    >({
+      query: ({ limit, page, sort, filter }) =>
+        `/calls?page=${page}&limit=${limit}&sort=${sort}&${filter}`,
       providesTags: ["Calls", "Call"],
     }),
     createCallLog: builder.mutation<CallLog, Partial<CallLog>>({

@@ -30,10 +30,7 @@ export default function Home() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, user?.role]);
-  console.log(
-    user,
-    token ? (user?.role !== UserRole.Client ? "admin" : "index") : "login"
-  );
+
   if (isError || isLoading || !user) {
     return <Loader />;
   }

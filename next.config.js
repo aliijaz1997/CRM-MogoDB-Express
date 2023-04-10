@@ -4,6 +4,7 @@ const nextConfig = {
   presets: ["next/babel"],
   transpilePackages: [
     "@mui/material",
+    "@mui/x-data-grid",
     "@fullcalendar/react",
     "@fullcalendar/daygrid",
   ],
