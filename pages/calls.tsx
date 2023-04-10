@@ -58,7 +58,7 @@ export default function CallLogTable() {
   const { user } = useContext(AuthContext);
   const isAdmin = user && user.role === UserRole.Admin;
 
-  const { data: callLogs = [], isLoading } = useGetCallLogsQuery();
+  const { data: callLogs, isLoading } = useGetCallLogsQuery();
   const [deleteCallLog, { isLoading: isDeleting }] = useDeleteCallLogMutation();
   const [updateCallLog, { isLoading: isUpdating }] = useUpdateCallLogMutation();
 
@@ -67,8 +67,9 @@ export default function CallLogTable() {
     const endIndex = startIndex + PAGE_SIZE;
 
     const currentRoleLogs = isAdmin
-      ? callLogs
-      : callLogs.filter((c) => c.createdBy._id === user?._id);
+      ? callLogs ?? ([] as CallLog[])
+      : (callLogs && callLogs.filter((c) => c.createdBy._id === user?._id)) ??
+        ([] as CallLog[]);
 
     const totalPages = Math.ceil(currentRoleLogs.length / PAGE_SIZE);
     setTotalPages(totalPages);
@@ -93,10 +94,12 @@ export default function CallLogTable() {
     });
 
     return filteredLogs
-      .filter((c) => c.client.name.toLowerCase().includes(search.toLowerCase()))
+      .filter((c) =>
+        c.createdBy.name.toLowerCase().includes(search.toLowerCase())
+      )
       .slice(startIndex, endIndex);
-  }, [filterDates, callLogs, filter, page, search]);
-
+  }, [callLogs, filterDates, filter, page, search]);
+  console.log(filteredCallLogs, search);
   const handleModalOpen = () => {
     setIsModalVisible(true);
   };
@@ -168,7 +171,7 @@ export default function CallLogTable() {
           {isAdmin && (
             <TextField
               size="small"
-              label="Filter with Client name"
+              label="Filter with Admin name"
               variant="outlined"
               value={search}
               onChange={(e) => {

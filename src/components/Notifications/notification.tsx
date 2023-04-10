@@ -5,6 +5,7 @@ import {
   Person,
 } from "@mui/icons-material";
 import {
+  Checkbox,
   Divider,
   List,
   ListItem,
@@ -108,7 +109,12 @@ const ListItemWrapper: React.FC<ListItemProps> = ({ notification }) => {
       }}
     >
       <ListItemIcon>
-        <AccountCircleOutlined />
+        <Checkbox
+          checked={notification.seen}
+          onChange={() => {
+            updateNotification({ body: { _id: notification._id } });
+          }}
+        />
       </ListItemIcon>
       <ListItemText primary={notification.description} />
     </ListItem>

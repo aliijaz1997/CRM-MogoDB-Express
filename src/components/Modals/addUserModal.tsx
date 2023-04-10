@@ -61,7 +61,18 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (currentUser && user) {
+    if (!name.match(/^[a-zA-Z0-9 ]+$/)) {
+      setNameError(true);
+    }
+    if (!email.match(/\S+@\S+\.\S+/)) {
+      setEmailError(true);
+    }
+    if (
+      currentUser &&
+      user &&
+      name.match(/^[a-zA-Z0-9 ]+$/) &&
+      email.match(/\S+@\S+\.\S+/)
+    ) {
       addUser({
         name,
         email,

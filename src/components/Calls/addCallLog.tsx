@@ -73,7 +73,7 @@ export const AddCallLogModal: React.FC<AddCallLogModalProps> = ({
         return { ...prev, client: true };
       });
     }
-    if (user && !isError) {
+    if (user && !isError && callLog.notes && callLog.client._id) {
       await createCallLog({
         ...callLog,
         createdBy: { _id: user._id, name: user.name },
