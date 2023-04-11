@@ -257,9 +257,9 @@ export default function CallLogTable() {
         pageSizeOptions={[10, 20, 50, 100]}
         pagination
         paginationMode="server"
-        paginationModel={{ pageSize, page: page - 1 }}
+        paginationModel={{ pageSize, page: page }}
         onPaginationModelChange={(params) => {
-          setPage(params.page + 1);
+          setPage(params.page);
           setPageSize(params.pageSize);
         }}
         sortingMode="server"

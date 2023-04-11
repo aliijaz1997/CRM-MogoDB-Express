@@ -9,20 +9,11 @@ router.get("/", async (req, res) => {
       if (value) {
         const [fieldName, operator] = field.split("_");
         switch (operator) {
-          case "contains":
-            filters[fieldName] = { $regex: new RegExp(value, "i") };
-            break;
           case "equals":
             filters[fieldName] = value;
             break;
           case "notEquals":
             filters[fieldName] = { $ne: value };
-            break;
-          case "startsWith":
-            filters[fieldName] = { $regex: new RegExp(`^${value}`, "i") };
-            break;
-          case "endsWith":
-            filters[fieldName] = { $regex: new RegExp(`${value}$`, "i") };
             break;
           case "isEmpty":
             filters[fieldName] = "";
@@ -33,14 +24,29 @@ router.get("/", async (req, res) => {
           case "isAnyOf":
             filters[fieldName] = { $in: value.split(",") };
             break;
+          case "greaterThan":
+            filters[fieldName] = { $gt: value };
+            break;
+          case "greaterThanOrEqual":
+            filters[fieldName] = { $gte: value };
+            break;
+          case "lessThan":
+            filters[fieldName] = { $lt: value };
+            break;
+          case "lessThanOrEqual":
+            filters[fieldName] = { $lte: value };
+            break;
+
           default:
             break;
         }
       }
     });
-    page = parseInt(page) || 1;
+
+    page = parseInt(page) || 0;
     limit = parseInt(limit) || 10;
-    const skip = (page - 1) * limit;
+    const skip = page * limit;
+
     const query = {};
     if (startDate && endDate) {
       query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -53,15 +59,31 @@ router.get("/", async (req, res) => {
         sortObj[field] = sortDirection;
       });
     }
-    const totalLogs = await CallLog.countDocuments(query);
-    let callLogsQuery = CallLog.find({ ...query, ...filters })
-      .sort(sortObj)
-      .skip(skip)
-      .limit(limit);
+
+    let callLogsQuery = CallLog.find({ ...query, ...filters }).sort(sortObj);
     const callLogs = await callLogsQuery.exec();
+
+    const filteredLogs = callLogs.filter((log) => {
+      let include = true;
+      Object.entries(req.query).forEach(([fieldOperator, value]) => {
+        const [fieldName, operator] = fieldOperator.split("_");
+        const field = log[fieldName];
+
+        if (operator === "contains") {
+          include = field.toLowerCase().includes(value.toLowerCase());
+        } else if (operator === "startsWith") {
+          include = field.toLowerCase().startsWith(value.toLowerCase());
+        } else if (operator === "endsWith") {
+          include = field.toLowerCase().endsWith(value.toLowerCase());
+        }
+      });
+      return include;
+    });
+    const endIndex = skip + parseInt(limit);
+    const limitedLogs = filteredLogs.slice(skip, endIndex);
     res.status(200).json({
-      totalLogs,
-      callLogs,
+      totalLogs: filteredLogs.length,
+      callLogs: limitedLogs,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
