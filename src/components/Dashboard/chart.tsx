@@ -9,33 +9,49 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Title from "./title";
+import { useGetCallLogsQuery } from "../../store/services/api";
+import dayjs from "dayjs";
+import Loader from "../loader";
 
 // Generate Sales Data
 function createData(time: string, amount?: number) {
   return { time, amount };
 }
 
-const data = [
-  createData("00:00", 0),
-  createData("03:00", 300),
-  createData("06:00", 600),
-  createData("09:00", 800),
-  createData("12:00", 1500),
-  createData("15:00", 2000),
-  createData("18:00", 2400),
-  createData("21:00", 2400),
-  createData("24:00", undefined),
-];
+type ChartProps = {};
 
-export default function Chart() {
+const Chart: React.FC<ChartProps> = () => {
   const theme = useTheme();
 
+  const [dateRange, setDateRange] = React.useState({
+    currentDate: new Date().toISOString(),
+    oneMonthPrevDate: new Date(
+      Date.now() - 30 * 24 * 60 * 60 * 1000
+    ).toISOString(),
+  });
+
+  const { data, isLoading, isError, error } = useGetCallLogsQuery({
+    startDate: dateRange.oneMonthPrevDate,
+    endDate: dateRange.currentDate,
+  });
+
+  const { callLogs: callsLastMonth = [] } = data ?? {};
+
+  const chartData = [];
+  for (let i = 0; i <= 24; i += 3) {
+    const time = `${i.toString().padStart(2, "0")}:00`;
+    const numCalls = callsLastMonth.filter((call) => {
+      return new Date(call.createdAt).getHours() === i;
+    }).length;
+    chartData.push(createData(time, numCalls));
+  }
+  if (isLoading) return <Loader />;
   return (
     <React.Fragment>
-      <Title>Today</Title>
+      <Title>Number of Calls Last Month</Title>
       <ResponsiveContainer>
         <LineChart
-          data={data}
+          data={chartData}
           margin={{
             top: 16,
             right: 16,
@@ -61,7 +77,7 @@ export default function Chart() {
                 ...theme.typography.body1,
               }}
             >
-              Sales ($)
+              Number of Calls
             </Label>
           </YAxis>
           <Line
@@ -75,4 +91,6 @@ export default function Chart() {
       </ResponsiveContainer>
     </React.Fragment>
   );
-}
+};
+
+export default Chart;

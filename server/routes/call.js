@@ -3,13 +3,16 @@ const CallLog = require("../models/call.model");
 
 router.get("/", async (req, res) => {
   try {
-    let { page, limit, startDate, endDate, sort } = req.query;
+    let { page, limit, startDate, endDate, sort, ...rest } = req.query;
     const filters = {};
-    Object.entries(req.query).forEach(([field, value]) => {
+    Object.entries(rest).forEach(([field, value]) => {
       if (value) {
         const [fieldName, operator] = field.split("_");
         switch (operator) {
-          case "equals":
+          case "equals" || "=":
+            if (fieldName === "createdBy:id") {
+              filters["createdBy._id"] = value;
+            }
             filters[fieldName] = value;
             break;
           case "notEquals":
@@ -48,9 +51,14 @@ router.get("/", async (req, res) => {
     const skip = page * limit;
 
     const query = {};
-    if (startDate && endDate) {
-      query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+    const isDateRange =
+      !isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime());
+    if (isDateRange) {
+      query.createdAt = { $gte: startDateTime, $lte: endDateTime };
     }
+
     const sortObj = {};
     if (sort) {
       const sortArr = sort.split(",");
@@ -65,7 +73,7 @@ router.get("/", async (req, res) => {
 
     const filteredLogs = callLogs.filter((log) => {
       let include = true;
-      Object.entries(req.query).forEach(([fieldOperator, value]) => {
+      Object.entries(rest).forEach(([fieldOperator, value]) => {
         const [fieldName, operator] = fieldOperator.split("_");
         const field = log[fieldName];
 
@@ -81,10 +89,18 @@ router.get("/", async (req, res) => {
     });
     const endIndex = skip + parseInt(limit);
     const limitedLogs = filteredLogs.slice(skip, endIndex);
-    res.status(200).json({
-      totalLogs: filteredLogs.length,
-      callLogs: limitedLogs,
-    });
+
+    if (isDateRange) {
+      res.status(200).json({
+        totalLogs: filteredLogs.length,
+        callLogs: filteredLogs,
+      });
+    } else {
+      res.status(200).json({
+        totalLogs: filteredLogs.length,
+        callLogs: limitedLogs,
+      });
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

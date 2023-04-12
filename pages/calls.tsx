@@ -174,6 +174,7 @@ export default function CallLogTable() {
       headerName: "Actions",
       width: 200,
       sortable: false,
+      filterable: false,
       renderCell: (params) => (
         <Box sx={{ display: "flex" }}>
           <Button
