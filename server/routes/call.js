@@ -1,5 +1,7 @@
 const router = require("express").Router();
 const CallLog = require("../models/call.model");
+const Notification = require("../models/notification.model");
+const auth = require("../config/firebase-config");
 
 router.get("/", async (req, res) => {
   try {
@@ -134,8 +136,16 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
+  // const callLog = await CallLog.findById(id);
   const callLogObj = {};
-  if (req.body.createdAt != null) {
+  if (req.body.createdAt != null && typeof req.body.createdAt === "string") {
+    // new Notification({
+    //   description: `${
+    //     (await auth).displayName
+    //   } changed the date to ${new Date(
+    //     req.body.createdAt
+    //   ).getDate()} created by ${callLog.createdBy.name}`,
+    // }).save();
     callLogObj.createdAt = req.body.createdAt;
   }
   if (req.body.duration != null) {

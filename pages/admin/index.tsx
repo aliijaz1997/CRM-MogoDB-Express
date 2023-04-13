@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import Calendar from "../../src/components/Calender/calender";
 import Chart from "../../src/components/Dashboard/chart";
 import Deposits from "../../src/components/Dashboard/deposit";
-import Orders from "../../src/components/Dashboard/orders";
+import RecentCalls from "../../src/components/Dashboard/recentCalls";
 import Loader from "../../src/components/loader";
 import { AuthContext } from "../../src/context/authContext";
 import { useGetUserByIdQuery } from "../../src/store/services/api";
@@ -77,11 +77,11 @@ export default function HomeAdmin() {
               backgroundColor: "#E6E6FA",
             }}
           >
-            <Orders />
+            <RecentCalls />
           </Paper>
         </Grid>
         <Grid item xs={12}>
-          {/* <Calendar /> */}
+          <Calendar />
         </Grid>
       </Grid>
     </Box>

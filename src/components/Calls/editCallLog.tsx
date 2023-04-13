@@ -11,7 +11,11 @@ import {
 import { CallLog, ModifiedCallLog, Status } from "../../types/";
 import { useUpdateCallLogMutation } from "../../store/services/api";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 interface EditCallLogModalProps {
   open: boolean;
   onClose: () => void;
@@ -38,7 +42,6 @@ export const EditCallLogModal: React.FC<EditCallLogModalProps> = ({
     if (notesError) return;
     await updateCallLog({ ...updatedCallLog, _id: updatedCallLog.id });
   };
-
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Edit Call Log</DialogTitle>

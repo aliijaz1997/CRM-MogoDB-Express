@@ -112,7 +112,7 @@ export const apiSlice = createApi({
         method: "PUT",
         body: callLog,
       }),
-      invalidatesTags: ["Calls", "Call"],
+      invalidatesTags: ["Calls", "Call", "Notifications"],
     }),
     deleteCallLog: builder.mutation<void, string>({
       query: (id) => ({
