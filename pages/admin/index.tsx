@@ -3,14 +3,14 @@ import { useRouter } from "next/router";
 import React from "react";
 import { useSelector } from "react-redux";
 import Calendar from "../../src/components/Calender/calender";
-import Chart from "../../src/components/Dashboard/chart";
-import Deposits from "../../src/components/Dashboard/deposit";
+import ChartCallLog from "../../src/components/Dashboard/chartCallLog";
 import RecentCalls from "../../src/components/Dashboard/recentCalls";
 import Loader from "../../src/components/loader";
 import { AuthContext } from "../../src/context/authContext";
 import { useGetUserByIdQuery } from "../../src/store/services/api";
 import { RootState } from "../../src/store/store";
 import { UserRole } from "../../src/types";
+import ChartStatus from "../../src/components/Dashboard/statusChart";
 
 export default function HomeAdmin() {
   const router = useRouter();
@@ -41,8 +41,7 @@ export default function HomeAdmin() {
   return (
     <Box>
       <Grid container spacing={3}>
-        {/* Chart */}
-        <Grid item xs={12} md={8} lg={9}>
+        <Grid item xs={12}>
           <Paper
             sx={{
               p: 2,
@@ -51,21 +50,19 @@ export default function HomeAdmin() {
               height: 240,
             }}
           >
-            <Chart />
+            <ChartCallLog />
           </Paper>
         </Grid>
-        {/* Recent Deposits */}
-        <Grid item xs={12} md={4} lg={3}>
+        <Grid item xs={12}>
           <Paper
             sx={{
               p: 2,
               display: "flex",
               flexDirection: "column",
               height: 240,
-              color: "red",
             }}
           >
-            <Deposits />
+            <ChartStatus />
           </Paper>
         </Grid>
         <Grid item xs={12}>

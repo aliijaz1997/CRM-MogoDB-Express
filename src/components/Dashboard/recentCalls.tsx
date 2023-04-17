@@ -42,9 +42,9 @@ export default function Orders() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {callLogs.map((row) => (
+          {callLogs.map((row, idx) => (
             <TableRow key={row._id}>
-              <TableCell>{row.serialNumber}</TableCell>
+              <TableCell>{idx}</TableCell>
               <TableCell>{formatDateTime(row.createdAt as string)}</TableCell>
               <TableCell>{row.type}</TableCell>
               <TableCell>{row.duration}</TableCell>
