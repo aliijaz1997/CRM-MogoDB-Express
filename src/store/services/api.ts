@@ -7,10 +7,21 @@ export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Users", "User", "Notifications", "Calls", "Call"],
   endpoints: (builder) => ({
-    getUsers: builder.query<UserType[], void>({
-      query: () => {
+    getUsers: builder.query<
+      { users: UserType[]; totalUsers: number },
+      {
+        client: boolean;
+        page?: number;
+        limit?: number;
+        sort?: string;
+        filter?: string;
+        startDate?: string;
+        endDate?: string;
+      }
+    >({
+      query: ({ limit, page, sort, filter, startDate, endDate, client }) => {
         return {
-          url: `user`,
+          url: `user?page=${page}&limit=${limit}&sort=${sort}&${filter}&startDate=${startDate}&endDate=${endDate}&client=${client}`,
           method: "GET",
         };
       },
@@ -51,10 +62,9 @@ export const apiSlice = createApi({
       invalidatesTags: ["User", "Users"],
     }),
     deleteUser: builder.mutation<any, { id: string }>({
-      query: (body) => ({
-        url: `user`,
+      query: ({ id }) => ({
+        url: `user/${id}`,
         method: "DELETE",
-        body,
       }),
       invalidatesTags: ["Users"],
     }),

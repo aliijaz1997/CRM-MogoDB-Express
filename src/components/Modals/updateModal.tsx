@@ -1,5 +1,5 @@
 import * as React from "react";
-import { UserType } from "../../types";
+import { ModifiedUser } from "../../types";
 import {
   Button,
   Dialog,
@@ -17,7 +17,7 @@ import { Edit } from "@mui/icons-material";
 interface UserModalUpdateProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   open: boolean;
-  user: UserType;
+  user: ModifiedUser;
 }
 export default function UpdateUserModal({
   setOpen,
@@ -57,7 +57,7 @@ export default function UpdateUserModal({
           return;
         }
       }
-      updateUser({ body: { _id: user._id, name } })
+      updateUser({ body: { _id: user.id, name } })
         .then(() => {
           toast.success("User updated Successfully");
         })

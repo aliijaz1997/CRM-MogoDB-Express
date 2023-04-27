@@ -78,7 +78,15 @@ export default function HomeAdmin() {
           </Paper>
         </Grid>
         <Grid item xs={12}>
-          <Calendar />
+          <Paper
+            sx={{
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Calendar />
+          </Paper>
         </Grid>
       </Grid>
     </Box>

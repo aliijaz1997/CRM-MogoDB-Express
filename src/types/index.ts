@@ -48,3 +48,4 @@ export interface CallLog {
 }
 
 export type ModifiedCallLog = Omit<CallLog, "_id"> & { id: string };
+export type ModifiedUser = Omit<UserType, "_id"> & { id: string };

@@ -2,11 +2,125 @@ const router = require("express").Router();
 let User = require("../models/user.model");
 let Notification = require("../models/notification.model");
 const auth = require("../config/firebase-config");
+const dayjs = require("dayjs");
+const timezone = require("dayjs/plugin/timezone");
+const utc = require("dayjs/plugin/utc");
 
-router.route("/").get((_req, res) => {
-  User.find()
-    .then((person) => res.status(201).json(person))
-    .catch((err) => res.status(400).json("Error Occurred is " + err));
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+router.route("/").get(async (req, res) => {
+  try {
+    let { page, limit, startDate, endDate, sort, client, ...rest } = req.query;
+    const filters = {};
+    Object.entries(rest).forEach(([field, value]) => {
+      if (value) {
+        const [fieldName, operator] = field.split("_");
+        switch (operator) {
+          case "equals" || "=":
+            if (fieldName === "addedBy:id") {
+              filters["addedBy._id"] = value;
+            }
+            filters[fieldName] = value;
+            break;
+          case "notEquals":
+            filters[fieldName] = { $ne: value };
+            break;
+          case "isEmpty":
+            filters[fieldName] = "";
+            break;
+          case "isNotEmpty":
+            filters[fieldName] = { $ne: "" };
+            break;
+          case "isAnyOf":
+            filters[fieldName] = { $in: value.split(",") };
+            break;
+          case "greaterThan":
+            filters[fieldName] = { $gt: value };
+            break;
+          case "greaterThanOrEqual":
+            filters[fieldName] = { $gte: value };
+            break;
+          case "lessThan":
+            filters[fieldName] = { $lt: value };
+            break;
+          case "lessThanOrEqual":
+            filters[fieldName] = { $lte: value };
+            break;
+
+          default:
+            break;
+        }
+      }
+    });
+
+    page = parseInt(page) || 0;
+    limit = parseInt(limit) || 10;
+    const skip = page * limit;
+
+    const query = {};
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+    const isDateRange =
+      !isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime());
+    if (isDateRange) {
+      query.createdAt = { $gte: startDateTime, $lte: endDateTime };
+    }
+
+    const sortObj = {};
+    if (sort) {
+      const sortArr = sort.split(",");
+      sortArr.forEach((sortItem) => {
+        const [field, sortDirection] = sortItem.split(":");
+        sortObj[field] = sortDirection;
+      });
+    }
+    const roleFilter =
+      client === "true" ? { role: "client" } : { role: { $ne: "client" } };
+    let usersQuery = User.find({
+      ...roleFilter,
+      ...query,
+      ...filters,
+    }).sort(sortObj);
+    const users = await usersQuery.exec();
+    const filteredUsers = users.filter((log) => {
+      let include = true;
+      Object.entries(rest).forEach(([fieldOperator, value]) => {
+        const [fieldName, operator] = fieldOperator.split("_");
+        let field = log[fieldName];
+
+        if (field instanceof Date) {
+          field = dayjs(field).tz("Asia/Karachi").format("MMMM D, YYYY h:mm A");
+        }
+
+        if (operator === "contains") {
+          include = field.toLowerCase().includes(value.toLowerCase());
+        } else if (operator === "startsWith") {
+          include = field.toLowerCase().startsWith(value.toLowerCase());
+        } else if (operator === "endsWith") {
+          include = field.toLowerCase().endsWith(value.toLowerCase());
+        }
+      });
+      return include;
+    });
+
+    const endIndex = skip + parseInt(limit);
+    const limitedUsers = filteredUsers.slice(skip, endIndex);
+
+    if (isDateRange) {
+      res.status(200).json({
+        totalUsers: filteredUsers.length,
+        users: filteredUsers,
+      });
+    } else {
+      res.status(200).json({
+        totalUsers: filteredUsers.length,
+        users: limitedUsers,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 router.route("/:id").get((req, res) => {
@@ -115,20 +229,30 @@ router.route("/").put((req, res) => {
   }
 });
 
-router.route("/").delete((req, res) => {
-  const id = req.body.id;
-  User.findById(id).then((user) => {
-    new Notification({
-      description: `${user.name} is deleted by admin`,
-    }).save();
-  });
+router.route("/:id").delete(async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "ID not found!" });
+    }
 
-  User.deleteOne({ _id: id })
-    .then(() => {
-      auth.deleteUser(id);
-      return res.status(204).json("User deleted Successfully");
-    })
-    .catch((err) => res.status(400).json("Error Occurred is " + err));
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await new Notification({
+      description: `${user.name} was deleted by an admin`,
+    }).save();
+
+    await User.deleteOne({ _id: id });
+    await auth.deleteUser(id);
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 router.route("/auth").post((req, res) => {

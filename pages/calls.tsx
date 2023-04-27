@@ -9,6 +9,7 @@ import {
   MenuItem,
   Modal,
   TextField,
+  IconButton,
 } from "@mui/material";
 import {
   DataGrid,
@@ -17,7 +18,13 @@ import {
   GridPagination,
   GridSortModel,
 } from "@mui/x-data-grid";
-import { Add, Delete, Edit, PhoneCallback } from "@mui/icons-material";
+import {
+  Add,
+  AddCircle,
+  Delete,
+  Edit,
+  PhoneCallback,
+} from "@mui/icons-material";
 import {
   useDeleteCallLogMutation,
   useGetCallLogsQuery,
@@ -119,19 +126,14 @@ export default function CallLogTable() {
       renderCell: (params) => (
         <Typography>
           {params.row.notes.substring(0, 30)}...{" "}
-          <span
+          <IconButton
             onClick={() => {
               handleModalOpen();
               setSelectedCallLog(params.row);
             }}
-            style={{
-              color: "text.primary",
-              textDecoration: "underline",
-              cursor: "pointer",
-            }}
           >
-            show more
-          </span>
+            <AddCircle />
+          </IconButton>
         </Typography>
       ),
     },
@@ -209,16 +211,16 @@ export default function CallLogTable() {
   ];
 
   const rows = useMemo(() => {
-    return callLogs.map((callLog) => {
+    return callLogs.map((callLog, idx) => {
       return {
         id: callLog._id,
-        serialNumber: callLog.serialNumber,
+        serialNumber: idx,
         createdAt: formatDateTime(callLog.createdAt as string),
         duration: callLog.duration,
         type: callLog.type,
         client: callLog.client.name,
         admin: callLog.createdBy.name,
-        notes: callLog.notes.substring(0, 35) + "...",
+        notes: callLog.notes,
         status: callLog.status,
         actions: "",
       };
@@ -250,36 +252,43 @@ export default function CallLogTable() {
           Add Call
         </Button>
       </Box>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        checkboxSelection={false}
-        rowCount={totalLogs}
-        pageSizeOptions={[10, 20, 50, 100]}
-        pagination
-        paginationMode="server"
-        paginationModel={{ pageSize, page: page }}
-        onPaginationModelChange={(params) => {
-          setPage(params.page);
-          setPageSize(params.pageSize);
+      <Box
+        sx={{
+          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+          bgcolor: "white",
         }}
-        sortingMode="server"
-        sortModel={sortModel}
-        onSortModelChange={(params) => {
-          setSortModel(params);
-        }}
-        filterMode="server"
-        filterModel={filterModel}
-        onFilterModelChange={(model) => {
-          setFilterModel(model);
-        }}
-        components={{
-          Pagination: GridPagination,
-        }}
-        loading={isLoading || isDeleting || isUpdating}
-        autoHeight={true}
-        disableRowSelectionOnClick
-      />
+      >
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          checkboxSelection={false}
+          rowCount={totalLogs}
+          pageSizeOptions={[10, 20, 50, 100]}
+          pagination
+          paginationMode="server"
+          paginationModel={{ pageSize, page: page }}
+          onPaginationModelChange={(params) => {
+            setPage(params.page);
+            setPageSize(params.pageSize);
+          }}
+          sortingMode="server"
+          sortModel={sortModel}
+          onSortModelChange={(params) => {
+            setSortModel(params);
+          }}
+          filterMode="server"
+          filterModel={filterModel}
+          onFilterModelChange={(model) => {
+            setFilterModel(model);
+          }}
+          components={{
+            Pagination: GridPagination,
+          }}
+          loading={isLoading || isDeleting || isUpdating}
+          autoHeight={true}
+          disableRowSelectionOnClick
+        />
+      </Box>
       <AddCallLogModal
         open={openAddModal}
         onClose={() => {

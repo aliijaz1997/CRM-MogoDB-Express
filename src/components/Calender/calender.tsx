@@ -13,7 +13,15 @@ import { AuthContext } from "../../context/authContext";
 import { getFilterParams } from "../../helper/getFilterParams";
 import { EventClickArg, EventDropArg } from "@fullcalendar/core";
 import { EditCallLogModal } from "../Calls/editCallLog";
-import { Box } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 
 interface CalendarProps {}
 
@@ -21,6 +29,10 @@ const Calendar: React.FC<CalendarProps> = () => {
   const [dateRange, setDateRange] = React.useState({ start: "", end: "" });
   const [selectedItem, setSelectedItem] = React.useState<CallLog>();
   const [open, setOpen] = React.useState(false);
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [draggedEvent, setDraggedEvent] = React.useState<EventDropArg | null>(
+    null
+  );
 
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === UserRole.Admin;
@@ -50,7 +62,14 @@ const Calendar: React.FC<CalendarProps> = () => {
       borderColor: c.type === "outgoing" ? "#922B21" : "#1E8449",
       resizable: false,
     }));
-  }, [callLogs, dateRange.start, dateRange.end, isUpdatingError, isUpdating]);
+  }, [
+    callLogs,
+    dateRange.start,
+    dateRange.end,
+    isUpdatingError,
+    isUpdating,
+    draggedEvent?.event.endStr,
+  ]);
 
   const onEventClick = ({ event }: EventClickArg) => {
     const currentItem = callLogs.find(
@@ -61,11 +80,23 @@ const Calendar: React.FC<CalendarProps> = () => {
     setOpen(true);
   };
 
-  const onEventDrop = async ({ event, oldEvent }: EventDropArg) => {
+  const onEventDrop = ({ event, oldEvent }: EventDropArg) => {
     if (!event.start) return;
-    updateCallLog({ _id: event.id, createdAt: event.start.toISOString() });
-    if (isUpdatingError) {
-      event.setDates(oldEvent.startStr, oldEvent.end);
+    setDraggedEvent({ event, oldEvent } as EventDropArg);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDrop = () => {
+    updateCallLog({
+      _id: draggedEvent?.event.id,
+      createdAt: draggedEvent?.event.start?.toISOString(),
+    });
+    setConfirmOpen(false);
+    if (isUpdatingError && draggedEvent) {
+      draggedEvent.event.setDates(
+        draggedEvent.oldEvent.startStr,
+        draggedEvent.oldEvent.endStr
+      );
     }
   };
 
@@ -86,6 +117,36 @@ const Calendar: React.FC<CalendarProps> = () => {
         eventClick={onEventClick}
         eventDrop={onEventDrop}
       />
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle>Confirmation</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to change the event date?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setConfirmOpen(false);
+              draggedEvent?.event.setDates(
+                draggedEvent.oldEvent.startStr,
+                draggedEvent.oldEvent.endStr
+              );
+              setDraggedEvent(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmDrop}
+            variant="contained"
+            color="primary"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {selectedItem && (
         <EditCallLogModal
           callLog={{ ...selectedItem, id: selectedItem._id }}

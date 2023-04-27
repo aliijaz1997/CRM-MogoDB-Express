@@ -2,6 +2,12 @@ const router = require("express").Router();
 const CallLog = require("../models/call.model");
 const Notification = require("../models/notification.model");
 const auth = require("../config/firebase-config");
+const dayjs = require("dayjs");
+const timezone = require("dayjs/plugin/timezone");
+const utc = require("dayjs/plugin/utc");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 router.get("/", async (req, res) => {
   try {
@@ -79,6 +85,9 @@ router.get("/", async (req, res) => {
         const [fieldName, operator] = fieldOperator.split("_");
         const field = log[fieldName];
 
+        if (field instanceof Date) {
+          field = dayjs(field).tz("Asia/Karachi").format("MMMM D, YYYY h:mm A");
+        }
         if (operator === "contains") {
           include = field.toLowerCase().includes(value.toLowerCase());
         } else if (operator === "startsWith") {
@@ -136,16 +145,8 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  // const callLog = await CallLog.findById(id);
   const callLogObj = {};
   if (req.body.createdAt != null && typeof req.body.createdAt === "string") {
-    // new Notification({
-    //   description: `${
-    //     (await auth).displayName
-    //   } changed the date to ${new Date(
-    //     req.body.createdAt
-    //   ).getDate()} created by ${callLog.createdBy.name}`,
-    // }).save();
     callLogObj.createdAt = req.body.createdAt;
   }
   if (req.body.duration != null) {

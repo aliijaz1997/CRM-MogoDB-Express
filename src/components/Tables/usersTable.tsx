@@ -1,245 +1,210 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Box, Theme } from "@mui/material";
 import {
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Button,
-  TableContainer,
-  IconButton,
-  Pagination,
-  Box,
-} from "@mui/material";
-import { useDeleteUserMutation } from "../../store/services/api";
-import { UserType } from "../../types";
+  useDeleteUserMutation,
+  useGetUsersQuery,
+} from "../../store/services/api";
+import { ErrorResponse, ModifiedUser, UserRole } from "../../types";
 import { toast } from "react-toastify";
 import UpdateUserModal from "../Modals/updateModal";
-import { Delete, Edit, ImportExport } from "@mui/icons-material";
-import { SearchType } from "../../../pages/admin/users";
-import { useStyles } from "./styles";
+import { Delete, Edit } from "@mui/icons-material";
 import formatDateTime from "../../helper/getDate";
 import DeleteModal from "../Modals/deleteModal";
 import Loader from "../loader";
+import {
+  DataGrid,
+  GridColDef,
+  GridFilterModel,
+  GridPagination,
+  GridSortModel,
+} from "@mui/x-data-grid";
+import { getFilterParams } from "../../helper/getFilterParams";
+import { getSortParams } from "../../helper/getSortParams";
+import { styled } from "@mui/styles";
 
-interface UsersTableProps {
-  usersList: UserType[];
-  search: SearchType;
-}
-
-type SortOrder = "asc" | "desc";
-
-type SortBy = keyof Omit<UserType, "_id">;
-
-const columns = ["Serial No.", "Name", "Email", "Created At", "Role", "Action"];
-
-function UsersTable({ usersList, search }: UsersTableProps) {
+function UsersTable() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
-  const [sortBy, setSortBy] = useState<SortBy>("role");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [openDeleteModal, setDeleteModal] = useState(false);
-  const itemsPerPage = 10;
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ModifiedUser | null>(null);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [sortModel, setSortModel] = useState<GridSortModel>([]);
+  const [filterModel, setFilterModel] = useState<GridFilterModel>({
+    items: [],
+  });
 
-  const classes = useStyles();
-  const displayedUsers = useMemo(() => {
-    const totalPages = Math.ceil(usersList.length / itemsPerPage);
-    setTotalPages(totalPages);
+  const { data, isLoading } = useGetUsersQuery({
+    client: false,
+    page,
+    limit: pageSize,
+    sort: getSortParams(sortModel) as string,
+    filter: getFilterParams(filterModel) as string,
+  });
+  const { users: admins = [], totalUsers } = data ?? {};
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return [...usersList]
-      .sort((a, b) => {
-        const sortValue = sortOrder === "asc" ? 1 : -1;
-        if (a[sortBy] < b[sortBy]) {
-          return -sortValue;
-        }
-        if (a[sortBy] > b[sortBy]) {
-          return sortValue;
-        }
-        return 0;
-      })
-      .filter((u) => {
-        const nameMatch =
-          !search.name ||
-          u.name.toLowerCase().includes(search.name.toLowerCase());
-        const emailMatch =
-          !search.email ||
-          u.email.toLowerCase().includes(search.email.toLowerCase());
-        const roleMatch =
-          !search.role ||
-          u.role.toLowerCase().includes(search.role.toLowerCase());
-        return nameMatch && emailMatch && roleMatch;
-      })
-      .slice(startIndex, endIndex);
-  }, [
-    totalPages,
-    itemsPerPage,
-    currentPage,
-    usersList,
-    sortOrder,
-    search,
-    sortBy,
-  ]);
+  const [deleteUser, { isLoading: isDeleting, isError, error }] =
+    useDeleteUserMutation();
 
-  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const columns: GridColDef[] = [
+    { field: "serialNumber", headerName: "SR No." },
+    {
+      field: "name",
+      headerName: "Name",
+      width: 250,
+    },
+    {
+      field: "email",
+      headerName: "Email",
+      width: 250,
+    },
+    {
+      field: "createdAt",
+      headerName: "Created At",
+      width: 250,
+    },
+    {
+      field: "role",
+      headerName: "Role",
+      width: 250,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 300,
+      renderCell: (params) => (
+        <Box sx={{ display: "flex" }}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={() => {
+              setModalOpen(true);
+              setSelectedUser(params.row);
+            }}
+            startIcon={<Edit />}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            sx={{ ml: "5px" }}
+            onClick={() => {
+              setDeleteModalOpen(true);
+              setSelectedUser(params.row);
+            }}
+            startIcon={<Delete />}
+            disabled={params.row.role === UserRole.Admin}
+          >
+            Delete
+          </Button>
+        </Box>
+      ),
+    },
+  ];
 
-  const handleSort = (selectedSortBy: SortBy) => {
-    if (selectedSortBy === sortBy) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(selectedSortBy);
-      setSortOrder("asc");
+  const rows = useMemo(() => {
+    return admins.map((admins, idx) => {
+      return {
+        id: admins._id,
+        serialNumber: idx,
+        name: admins.name,
+        createdAt: formatDateTime(admins.createdAt as string),
+        email: admins.email,
+        role: admins.role,
+        actions: "",
+      };
+    });
+  }, [admins, page, pageSize, sortModel, filterModel]);
+
+  useEffect(() => {
+    if (isError && error && "data" in error) {
+      toast.error((error as ErrorResponse).data.message);
     }
-  };
+  }, [isError, error]);
 
-  const StyledCell = ({ name }: { name: string }) => {
-    return (
-      <TableCell
-        align="left"
-        sx={{ border: "1px solid rgba(224, 224, 224, 1)" }}
-      >
-        {name}
-      </TableCell>
-    );
-  };
-
-  if (isDeleting) return <Loader />;
+  if (isLoading) return <Loader />;
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        mt: 2,
-      }}
-    >
-      <TableContainer
-        sx={{
-          boxShadow: "0px 0px 3px 3px lightGray",
+    <Box sx={{ width: "100%" }}>
+      <StyledDataGrid
+        rows={rows}
+        columns={columns}
+        rowCount={totalUsers}
+        checkboxSelection={false}
+        pageSizeOptions={[10, 20, 50, 100]}
+        pagination
+        paginationMode="server"
+        paginationModel={{ pageSize, page: page }}
+        onPaginationModelChange={(params) => {
+          setPage(params.page);
+          setPageSize(params.pageSize);
         }}
-      >
-        {selectedUser && (
-          <UpdateUserModal
-            user={selectedUser}
-            open={modalOpen}
-            setOpen={setModalOpen}
-          />
-        )}
+        sortingMode="server"
+        sortModel={sortModel}
+        onSortModelChange={(params) => {
+          setSortModel(params);
+        }}
+        filterMode="server"
+        filterModel={filterModel}
+        onFilterModelChange={(model) => {
+          setFilterModel(model);
+        }}
+        components={{
+          Pagination: GridPagination,
+        }}
+        loading={isLoading || isDeleting}
+        autoHeight={true}
+        rowSelection={false}
+      />
+      {selectedUser && (
+        <UpdateUserModal
+          user={selectedUser}
+          open={modalOpen}
+          setOpen={setModalOpen}
+        />
+      )}
+      {selectedUser && (
         <DeleteModal
-          open={openDeleteModal}
+          open={deleteModalOpen}
           onClose={() => {
-            setDeleteModal(false);
+            setDeleteModalOpen(false);
           }}
           onDelete={() => {
-            if (selectedUser) {
-              deleteUser({ id: selectedUser._id })
-                .then(() => {
-                  toast.success("User deleted Successfully");
-                  setDeleteModal(false);
-                })
-                .catch((e) => {
-                  toast.error(`Error Occurred: ${e}`);
-                });
-            }
+            deleteUser({ id: selectedUser.id });
           }}
         />
-        <Table stickyHeader size="small" aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column}
-                  align="left"
-                  className={classes.tableHead}
-                >
-                  {column}
-                  {column !== "Action" && (
-                    <IconButton
-                      onClick={() => {
-                        if (column === "Serial No.") {
-                          handleSort("serialNumber" as SortBy);
-                          return;
-                        }
-                        if (column === "Created At") {
-                          handleSort("createdAt" as SortBy);
-                          return;
-                        }
-                        handleSort(column.toLowerCase() as SortBy);
-                      }}
-                    >
-                      <ImportExport />
-                    </IconButton>
-                  )}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {displayedUsers &&
-              displayedUsers.map((user) => {
-                return (
-                  <TableRow key={user._id} role="checkbox" tabIndex={-1}>
-                    <StyledCell name={`${user.serialNumber}`} />
-                    <StyledCell name={user.name} />
-                    <StyledCell name={user.email} />
-                    <StyledCell name={formatDateTime(user.createdAt)} />
-                    <StyledCell name={user.role} />
-                    <TableCell
-                      sx={{
-                        display: "flex",
-                        border: "1px solid rgba(224, 224, 224, 1)",
-                      }}
-                    >
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => {
-                          setModalOpen(true);
-                          setSelectedUser(user);
-                        }}
-                        startIcon={<Edit />}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        disabled={user.name === "Admin"}
-                        variant="contained"
-                        color="secondary"
-                        size="small"
-                        sx={{ ml: "5px" }}
-                        onClick={() => {
-                          setDeleteModal(true);
-                          setSelectedUser(user);
-                        }}
-                        startIcon={<Delete />}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Box sx={{ m: "10px", borderRadius: "10px" }}>
-        <Pagination
-          count={totalPages}
-          page={currentPage}
-          onChange={(_e, page) => {
-            setCurrentPage(page);
-          }}
-          showFirstButton
-          showLastButton
-        />
-      </Box>
+      )}
     </Box>
   );
 }
 
 export default UsersTable;
+
+const StyledDataGrid = styled(DataGrid)(({ theme }: { theme: Theme }) => ({
+  "& .MuiDataGrid-root": {
+    border: "1px solid #c4c4c4",
+  },
+
+  "& .MuiDataGrid-columnHeader": {
+    backgroundColor: "gray",
+    color: "black",
+  },
+
+  "& .MuiDataGrid-cell": {
+    borderRight: "1px solid #c4c4c4",
+    borderBottom: "1px solid #c4c4c4",
+  },
+
+  "& .MuiDataGrid-columnsContainer": {
+    backgroundColor: "#1e4ba4",
+    color: "#ffffff",
+  },
+  "& .MuiDataGrid-footerContainer": {
+    display: "flex",
+    justifyContent: "center",
+  },
+}));

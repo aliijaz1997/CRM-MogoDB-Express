@@ -11,23 +11,6 @@ export interface SearchType {
   role: string;
 }
 export default function ManageUsers() {
-  const [search, setSearch] = React.useState<SearchType>({
-    name: "",
-    email: "",
-    role: "",
-  });
-
-  const { data: usersList, isError, isLoading } = useGetUsersQuery();
-
-  const handleOnchangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch({ ...search, [e.target.name]: e.target.value });
-  };
-
-  if (isError || isLoading || !usersList?.length) return <Loader />;
-
-  const filteredtUserList = usersList.filter(
-    (user) => user.role !== UserRole.Client
-  );
   return (
     <Box>
       <Typography
@@ -41,46 +24,7 @@ export default function ManageUsers() {
       >
         Admin Panel
       </Typography>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "left",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h6">Filters</Typography>
-        <TextField
-          label="Search user by name"
-          name="name"
-          variant="outlined"
-          value={search?.name}
-          color="primary"
-          size="small"
-          onChange={handleOnchangeInput}
-          sx={{ m: "2px" }}
-        />
-        <TextField
-          label="Search user by email"
-          name="email"
-          variant="outlined"
-          value={search?.email}
-          color="primary"
-          size="small"
-          onChange={handleOnchangeInput}
-          sx={{ m: "2px" }}
-        />
-        <TextField
-          label="Search user by role"
-          name="role"
-          variant="outlined"
-          value={search?.role}
-          color="primary"
-          size="small"
-          onChange={handleOnchangeInput}
-          sx={{ m: "2px" }}
-        />
-      </Box>
-      <UsersTable usersList={filteredtUserList} search={search} />
+      <UsersTable />
     </Box>
   );
 }
