@@ -170,6 +170,7 @@ router.route("/").post(async (req, res) => {
     name: fullName,
     email,
     role,
+    serialNumber,
   });
 
   newUser

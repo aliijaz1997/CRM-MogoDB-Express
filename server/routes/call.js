@@ -146,8 +146,14 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const callLogObj = {};
+  const prevCall = await CallLog.findById(id);
   if (req.body.createdAt != null && typeof req.body.createdAt === "string") {
     callLogObj.createdAt = req.body.createdAt;
+    new Notification({
+      description: `${prevCall.createdBy.name} set the date to ${new Date(
+        prevCall.createdAt
+      )} and ${req.body.name} has changed to ${new Date(req.body.createdAt)}`,
+    }).save();
   }
   if (req.body.duration != null) {
     callLogObj.duration = req.body.duration;

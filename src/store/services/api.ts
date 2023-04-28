@@ -116,7 +116,12 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["Calls"],
     }),
-    updateCallLog: builder.mutation<CallLog, Partial<CallLog>>({
+    updateCallLog: builder.mutation<
+      CallLog,
+      Partial<CallLog> & {
+        name: string;
+      }
+    >({
       query: ({ _id, ...callLog }) => ({
         url: `/calls/${_id}`,
         method: "PUT",

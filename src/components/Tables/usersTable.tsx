@@ -46,33 +46,33 @@ function UsersTable() {
     useDeleteUserMutation();
 
   const columns: GridColDef[] = [
-    { field: "serialNumber", headerName: "SR No." },
+    { field: "serialNumber", headerName: "SR No.", width: 100 },
     {
       field: "name",
       headerName: "Name",
-      width: 250,
+      flex: 1,
     },
     {
       field: "email",
       headerName: "Email",
-      width: 250,
+      flex: 1,
     },
     {
       field: "createdAt",
       headerName: "Created At",
-      width: 250,
+      flex: 1,
     },
     {
       field: "role",
       headerName: "Role",
-      width: 250,
+      flex: 1,
     },
     {
       field: "actions",
       headerName: "Actions",
       sortable: false,
       filterable: false,
-      width: 300,
+      flex: 1,
       renderCell: (params) => (
         <Box sx={{ display: "flex" }}>
           <Button
@@ -129,10 +129,30 @@ function UsersTable() {
   if (isLoading) return <Loader />;
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box>
       <StyledDataGrid
+        sx={{
+          "& .MuiDataGrid-cell": {
+            borderBottom: "1px solid grey",
+            borderRight: "1px solid #000",
+          },
+          "& .MuiDataGrid-row": {
+            borderRight: "1px solid grey",
+          },
+          "& .MuiDataGrid-column": {
+            borderRight: "1px solid grey",
+          },
+          "& .MuiDataGrid-columnHeader": {
+            backgroundColor: "lightgrey",
+          },
+          border: "1px solid rgba(224, 224, 224, 1)",
+          borderRadius: "5px",
+          bgcolor: "white",
+        }}
         rows={rows}
         columns={columns}
+        rowHeight={40}
+        columnHeaderHeight={40}
         rowCount={totalUsers}
         checkboxSelection={false}
         pageSizeOptions={[10, 20, 50, 100]}

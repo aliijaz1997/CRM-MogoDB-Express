@@ -87,16 +87,19 @@ const Calendar: React.FC<CalendarProps> = () => {
   };
 
   const handleConfirmDrop = () => {
-    updateCallLog({
-      _id: draggedEvent?.event.id,
-      createdAt: draggedEvent?.event.start?.toISOString(),
-    });
-    setConfirmOpen(false);
-    if (isUpdatingError && draggedEvent) {
-      draggedEvent.event.setDates(
-        draggedEvent.oldEvent.startStr,
-        draggedEvent.oldEvent.endStr
-      );
+    if (user) {
+      updateCallLog({
+        _id: draggedEvent?.event.id,
+        createdAt: draggedEvent?.event.start?.toISOString(),
+        name: user?.name,
+      });
+      setConfirmOpen(false);
+      if (isUpdatingError && draggedEvent) {
+        draggedEvent.event.setDates(
+          draggedEvent.oldEvent.startStr,
+          draggedEvent.oldEvent.endStr
+        );
+      }
     }
   };
 

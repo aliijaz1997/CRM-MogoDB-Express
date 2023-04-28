@@ -158,10 +158,11 @@ export default function CallLogTable() {
               return toast.info(
                 "Admin can change the status of call logs only !"
               );
-            if (params.row.status === Status.PENDING) {
+            if (params.row.status === Status.PENDING && user) {
               updateCallLog({
                 _id: params.row.id,
                 status: Status.COMPLETED,
+                name: user.name,
               });
             }
           }}

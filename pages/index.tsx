@@ -29,8 +29,8 @@ export default function Home() {
       : router.push("/login");
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, user?.role]);
-
+  }, [currentUser, user?.role, token]);
+  console.log(token);
   if (isError || isLoading || !user) {
     return <Loader />;
   }

@@ -12,26 +12,33 @@ export default function Client() {
 
   return (
     <Box>
-      <Typography
+      <Box
         sx={{
           display: "flex",
-          m: 3,
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
-        variant="h3"
-        component="h1"
       >
-        Client Panel
-      </Typography>
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Button
-          variant="contained"
-          onClick={() => {
-            setAddModalOpen(true);
+        <Typography
+          sx={{
+            m: 3,
           }}
-          startIcon={<Add />}
+          variant="h3"
+          component="h1"
         >
-          Add Client
-        </Button>
+          Client Panel
+        </Typography>
+        <Box>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setAddModalOpen(true);
+            }}
+            startIcon={<Add />}
+          >
+            Add Client
+          </Button>
+        </Box>
       </Box>
       <CLientTable
         addModalOpen={addModalOpen}

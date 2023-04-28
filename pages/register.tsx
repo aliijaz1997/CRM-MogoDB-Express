@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Avatar,
   Box,
@@ -18,17 +18,20 @@ import Copyright from "../src/components/copyRight";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
+import { UserRole } from "../src/types";
 
 interface RegisterProps {}
 
 const Register: RegisterProps = () => {
+  const [userRole, setUserRole] = useState("");
+
   const { currentUser, register } = React.useContext(AuthContext);
   const router = useRouter();
   const token = useSelector<RootState>((state) => state.auth.token);
 
   React.useEffect(() => {
-    if (token) {
-      router.push("/");
+    if (token && userRole) {
+      userRole === UserRole.Client ? router.push("/") : router.push("/admin");
     }
   }, [currentUser, router]);
 
@@ -39,7 +42,7 @@ const Register: RegisterProps = () => {
     const email = data.get("email") as string;
     const password = data.get("password") as string;
     const role = data.get("role") as string;
-
+    setUserRole(role);
     if (email && password && role) {
       if (role === "admin") return toast.info("Admin cannot register");
       register({ email, password, name, role });

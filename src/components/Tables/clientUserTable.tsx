@@ -61,11 +61,11 @@ function CLientTable({ addModalOpen, handleCloseAddModal }: UsersTableProps) {
   const [temporaryAuth] = useTemporaryAuthMutation();
 
   const columns: GridColDef[] = [
-    { field: "serialNumber", headerName: "SR No." },
+    { field: "serialNumber", headerName: "SR No.", width: 100 },
     {
       field: "name",
       headerName: "Name",
-      width: 200,
+      flex: 1,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box>{params.row.name}</Box>
@@ -92,19 +92,19 @@ function CLientTable({ addModalOpen, handleCloseAddModal }: UsersTableProps) {
     {
       field: "email",
       headerName: "Email",
-      width: 250,
+      flex: 1,
     },
     {
       field: "createdAt",
       headerName: "Created At",
-      width: 250,
+      flex: 1,
     },
     {
       field: "actions",
       headerName: "Actions",
       sortable: false,
       filterable: false,
-      width: 300,
+      flex: 1,
       renderCell: (params) => (
         <Box sx={{ display: "flex" }}>
           <Button
@@ -162,6 +162,26 @@ function CLientTable({ addModalOpen, handleCloseAddModal }: UsersTableProps) {
   return (
     <Box>
       <DataGrid
+        sx={{
+          "& .MuiDataGrid-cell": {
+            borderBottom: "1px solid grey",
+            borderRight: "1px solid #000",
+          },
+          "& .MuiDataGrid-row": {
+            borderRight: "1px solid grey",
+          },
+          "& .MuiDataGrid-column": {
+            borderRight: "1px solid grey",
+          },
+          "& .MuiDataGrid-columnHeader": {
+            backgroundColor: "lightgrey",
+          },
+          border: "1px solid rgba(224, 224, 224, 1)",
+          borderRadius: "5px",
+          bgcolor: "white",
+        }}
+        rowHeight={40}
+        columnHeaderHeight={40}
         rows={rows}
         columns={columns}
         rowCount={totalUsers}
@@ -205,8 +225,9 @@ function CLientTable({ addModalOpen, handleCloseAddModal }: UsersTableProps) {
           onClose={() => {
             setDeleteModalOpen(false);
           }}
-          onDelete={() => {
-            deleteUser({ id: selectedUser.id });
+          onDelete={async () => {
+            await deleteUser({ id: selectedUser.id });
+            setDeleteModalOpen(false);
           }}
         />
       )}

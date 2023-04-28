@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Button,
   Dialog,
@@ -13,6 +13,7 @@ import { useUpdateCallLogMutation } from "../../store/services/api";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { AuthContext } from "../../context/authContext";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -31,6 +32,7 @@ export const EditCallLogModal: React.FC<EditCallLogModalProps> = ({
     useState<ModifiedCallLog>(callLog);
   const [notesError, setNotesError] = useState(false);
 
+  const { user } = useContext(AuthContext);
   const [updateCallLog, { isLoading }] = useUpdateCallLogMutation();
 
   useEffect(() => {
@@ -40,7 +42,13 @@ export const EditCallLogModal: React.FC<EditCallLogModalProps> = ({
   const handleUpdateCallLog = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (notesError) return;
-    await updateCallLog({ ...updatedCallLog, _id: updatedCallLog.id });
+    if (user) {
+      await updateCallLog({
+        ...updatedCallLog,
+        _id: updatedCallLog.id,
+        name: user.name,
+      });
+    }
   };
   return (
     <Dialog open={open} onClose={onClose}>
