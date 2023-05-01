@@ -9,6 +9,7 @@ export interface UserType {
   };
   createdAt: string;
   serialNumber: number;
+  phoneNumber: string;
 }
 
 export enum UserRole {

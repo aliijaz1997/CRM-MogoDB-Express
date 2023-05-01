@@ -1,16 +1,5 @@
 import { useContext, useMemo, useState } from "react";
-import {
-  TableContainer,
-  Box,
-  Button,
-  Theme,
-  Typography,
-  Select,
-  MenuItem,
-  Modal,
-  TextField,
-  IconButton,
-} from "@mui/material";
+import { Box, Button, Typography, Modal, IconButton } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -21,6 +10,7 @@ import {
 import {
   Add,
   AddCircle,
+  Call,
   Delete,
   Edit,
   PhoneCallback,
@@ -42,6 +32,7 @@ import isBetween from "dayjs/plugin/isBetween";
 import { toast } from "react-toastify";
 import { getSortParams } from "../src/helper/getSortParams";
 import { getFilterParams } from "../src/helper/getFilterParams";
+import DialDialog from "../src/components/Dial/dial";
 
 dayjs.extend(isBetween);
 
@@ -50,6 +41,7 @@ export default function CallLogTable() {
     useState<ModifiedCallLog | null>(null);
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openEditModal, setEditModal] = useState(false);
+  const [openCallModal, setOpenCallModal] = useState(false);
   const [openDeleteModal, setDeleteModal] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -242,16 +234,29 @@ export default function CallLogTable() {
         }}
       >
         <Typography variant="h3">Call Logs</Typography>
-        <Button
-          onClick={() => {
-            setOpenAddModal(true);
-          }}
-          startIcon={<Add />}
-          variant="contained"
-          size="small"
-        >
-          Add Call
-        </Button>
+        <Box>
+          <Button
+            onClick={() => {
+              setOpenCallModal(true);
+            }}
+            startIcon={<Call />}
+            variant="contained"
+            size="small"
+            sx={{ color: "white", bgcolor: "green", mr: 2 }}
+          >
+            Make a call
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenAddModal(true);
+            }}
+            startIcon={<Add />}
+            variant="contained"
+            size="small"
+          >
+            Add a Call
+          </Button>
+        </Box>
       </Box>
       <Box
         sx={{
@@ -336,6 +341,12 @@ export default function CallLogTable() {
           if (selectedCallLog) {
             handleDeleteCallLog(selectedCallLog.id);
           }
+        }}
+      />
+      <DialDialog
+        isOpen={openCallModal}
+        onClose={() => {
+          setOpenCallModal(false);
         }}
       />
     </Box>

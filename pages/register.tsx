@@ -19,11 +19,14 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { UserRole } from "../src/types";
+import { validatePhoneNumber } from "../src/helper/phoneValidation";
 
 interface RegisterProps {}
 
 const Register: RegisterProps = () => {
   const [userRole, setUserRole] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(true);
 
   const { currentUser, register } = React.useContext(AuthContext);
   const router = useRouter();
@@ -43,11 +46,22 @@ const Register: RegisterProps = () => {
     const password = data.get("password") as string;
     const role = data.get("role") as string;
     setUserRole(role);
-    if (email && password && role) {
+    if (email && password && role && phoneNumber) {
       if (role === "admin") return toast.info("Admin cannot register");
-      register({ email, password, name, role });
+      register({ email, password, name, role, phoneNumber });
+    } else {
+      toast.error("Field is missing !");
     }
   };
+
+  const handlePhoneNumberChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const inputPhoneNumber = event.target.value;
+    setPhoneNumber(inputPhoneNumber);
+    setIsPhoneNumberValid(validatePhoneNumber(inputPhoneNumber));
+  };
+
   return (
     <Box sx={{ height: "100vh" }}>
       <CssBaseline />
@@ -111,6 +125,13 @@ const Register: RegisterProps = () => {
             <MenuItem value="staff">Staff</MenuItem>
             <MenuItem value="manager">Manager</MenuItem>
           </TextField>
+          <TextField
+            label="Phone Number"
+            value={phoneNumber}
+            onChange={handlePhoneNumberChange}
+            error={!isPhoneNumberValid}
+            helperText={isPhoneNumberValid ? null : "Invalid phone number"}
+          />
           <Button
             type="submit"
             fullWidth

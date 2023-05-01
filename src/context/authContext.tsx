@@ -25,6 +25,7 @@ interface AuthContextProps {
     password: string;
     name: string;
     role: string;
+    phoneNumber: string;
   }) => void;
   logout: () => void;
   CustomSignIn: (token: string) => void;
@@ -51,11 +52,13 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
     name,
     role,
     password,
+    phoneNumber,
   }: {
     email: string;
     password: string;
     name: string;
     role: string;
+    phoneNumber: string;
   }) {
     return createUserWithEmailAndPassword(auth, email, password)
       .then((res) => {
@@ -67,6 +70,7 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
               email: user.email,
               name: user.displayName,
               role,
+              phoneNumber,
             });
           }
         });

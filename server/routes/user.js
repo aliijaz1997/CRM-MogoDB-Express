@@ -136,6 +136,7 @@ router.route("/").post(async (req, res) => {
   email = req.body.email;
   role = req.body.role;
   addedBy = req.body.addedBy;
+  phoneNumber = req.body.phoneNumber;
   serialNumber = (await User.find()).length + 1;
   if (addedBy) {
     auth
@@ -152,6 +153,7 @@ router.route("/").post(async (req, res) => {
           role,
           addedBy,
           serialNumber,
+          phoneNumber,
         });
 
         new Notification({
@@ -171,6 +173,7 @@ router.route("/").post(async (req, res) => {
     email,
     role,
     serialNumber,
+    phoneNumber,
   });
 
   newUser

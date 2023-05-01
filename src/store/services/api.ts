@@ -44,6 +44,7 @@ export const apiSlice = createApi({
         email: string;
         role: string;
         addedBy?: { name: string; role: string };
+        phoneNumber: string;
       }
     >({
       query: (body) => ({

@@ -12,6 +12,7 @@ import { useAddUserMutation } from "../../store/services/api";
 import { ErrorResponse, UserRole } from "../../types";
 import { toast } from "react-toastify";
 import Loader from "../loader";
+import { validatePhoneNumber } from "../../helper/phoneValidation";
 
 interface Props {
   open: boolean;
@@ -23,6 +24,8 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
   const [email, setEmail] = useState("");
   const [nameError, setNameError] = useState(false);
   const [emailError, setEmailError] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(true);
 
   const [addUser, { isError, error, isSuccess, isLoading }] =
     useAddUserMutation();
@@ -59,6 +62,14 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
     }
   };
 
+  const handlePhoneNumberChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const inputPhoneNumber = event.target.value;
+    setPhoneNumber(inputPhoneNumber);
+    setIsPhoneNumberValid(validatePhoneNumber(inputPhoneNumber));
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.match(/^[a-zA-Z0-9 ]+$/)) {
@@ -71,7 +82,8 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
       currentUser &&
       user &&
       name.match(/^[a-zA-Z0-9 ]+$/) &&
-      email.match(/\S+@\S+\.\S+/)
+      email.match(/\S+@\S+\.\S+/) &&
+      isPhoneNumberValid
     ) {
       addUser({
         name,
@@ -81,6 +93,7 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
           name: currentUser.displayName as string,
           role: user.role,
         },
+        phoneNumber,
       });
     }
   };
@@ -115,6 +128,13 @@ const AddUserModal: React.FC<Props> = ({ open, onClose }) => {
             margin="normal"
             error={emailError}
             helperText={emailError && "Please enter a valid email."}
+          />
+          <TextField
+            label="Phone Number"
+            value={phoneNumber}
+            onChange={handlePhoneNumberChange}
+            error={!isPhoneNumberValid}
+            helperText={isPhoneNumberValid ? null : "Invalid phone number"}
           />
         </DialogContent>
         <DialogActions>

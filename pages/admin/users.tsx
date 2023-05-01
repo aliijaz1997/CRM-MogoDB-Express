@@ -1,9 +1,6 @@
 import React from "react";
 import UsersTable from "../../src/components/Tables/usersTable";
-import { Box, TextField, Typography } from "@mui/material";
-import { useGetUsersQuery } from "../../src/store/services/api";
-import Loader from "../../src/components/loader";
-import { UserRole } from "../../src/types";
+import { Box, Typography } from "@mui/material";
 
 export interface SearchType {
   name: string;
