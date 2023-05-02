@@ -6,6 +6,7 @@ import { Grid, IconButton, InputAdornment } from "@mui/material";
 import { Backspace, Call } from "@mui/icons-material";
 import { styled } from "@mui/styles";
 import { validatePhoneNumber } from "../../helper/phoneValidation";
+import CallForwardingDialog from "./callForward";
 
 interface Props {
   isOpen: boolean;
@@ -147,6 +148,7 @@ export default function DialDialog(props: Props) {
           </Grid>
         </Grid>
       </Grid>
+      <CallForwardingDialog open={true} onClose={() => {}} />
     </Dialog>
   );
 }

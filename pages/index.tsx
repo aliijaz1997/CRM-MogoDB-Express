@@ -9,6 +9,7 @@ import Loader from "../src/components/loader";
 import { useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { UserRole } from "../src/types";
+import IncomingCallDialog from "../src/components/Dial/incomingCall";
 
 export default function Home() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function Home() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, user?.role, token]);
-  console.log(token);
+
   if (isError || isLoading || !user) {
     return <Loader />;
   }
@@ -65,7 +66,6 @@ export default function Home() {
             backgroundImage: `url(${post.image})`,
           }}
         >
-          {/* Increase the priority of the hero background image */}
           {
             <img
               style={{ display: "none" }}
@@ -110,6 +110,11 @@ export default function Home() {
             </Grid>
           </Grid>
         </Paper>
+        <IncomingCallDialog
+          open={false}
+          onClose={() => {}}
+          callerName="Admin"
+        />
       </main>
     </>
   );
