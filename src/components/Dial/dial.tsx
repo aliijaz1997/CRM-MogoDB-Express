@@ -2,11 +2,19 @@ import React, { useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { Grid, IconButton, InputAdornment } from "@mui/material";
+import {
+  Autocomplete,
+  Grid,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+} from "@mui/material";
 import { Backspace, Call } from "@mui/icons-material";
 import { styled } from "@mui/styles";
 import { validatePhoneNumber } from "../../helper/phoneValidation";
 import CallForwardingDialog from "./callForward";
+import { useGetUsersQuery } from "../../store/services/api";
+import Loader from "../loader";
 
 interface Props {
   isOpen: boolean;
@@ -15,7 +23,13 @@ interface Props {
 export default function DialDialog(props: Props) {
   const { isOpen, onClose } = props;
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [openModal, setOpenModal] = useState(false);
 
+  const { data, isLoading } = useGetUsersQuery({
+    client: true,
+  });
+  const { users: clients } = data ?? {};
+  console.log(clients);
   const handleNumberButtonClick = (number: number) => {
     if (phoneNumber.length < 11) {
       setPhoneNumber(phoneNumber + number);
@@ -24,7 +38,7 @@ export default function DialDialog(props: Props) {
 
   const handleCallButtonClick = () => {
     if (phoneNumber.length === 11 && validatePhoneNumber(phoneNumber)) {
-      console.log(`Dialing ${phoneNumber}...`);
+      setOpenModal(true);
     }
   };
 
@@ -34,10 +48,38 @@ export default function DialDialog(props: Props) {
     );
   };
 
+  const handleBackspacePress = (event: { key: string }) => {
+    if (event.key === "Backspace") {
+      setPhoneNumber((prevPhoneNumber) => prevPhoneNumber.slice(0, -1));
+    }
+  };
+  if (isLoading || !clients) return <Loader />;
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <Grid container direction="column" alignItems="center" spacing={2}>
         <Grid item xs={12}>
+          <TextField
+            select
+            fullWidth
+            value={phoneNumber || "none"}
+            onChange={(e) => {
+              const phone = e.target.value;
+              if (validatePhoneNumber(phone)) {
+                setPhoneNumber(phone);
+              } else {
+                setPhoneNumber("");
+              }
+            }}
+          >
+            <MenuItem value="none">None</MenuItem>
+            {clients.map((client) => {
+              return (
+                <MenuItem key={client._id} value={client.phoneNumber}>
+                  {client.name}
+                </MenuItem>
+              );
+            })}
+          </TextField>
           <TextField
             InputProps={{
               disableUnderline: true,
@@ -55,9 +97,12 @@ export default function DialDialog(props: Props) {
             }}
             fullWidth
             value={phoneNumber}
+            onKeyDown={handleBackspacePress}
             onChange={(event) => {
-              if (phoneNumber.length < 11) {
-                setPhoneNumber(event.target.value);
+              const phone = event.target.value;
+              const onlyNumbers = /^[0-9]+$/;
+              if (phoneNumber.length < 11 && onlyNumbers.test(phone)) {
+                setPhoneNumber(phone);
               }
             }}
             placeholder="Enter phone number"
@@ -148,7 +193,12 @@ export default function DialDialog(props: Props) {
           </Grid>
         </Grid>
       </Grid>
-      <CallForwardingDialog open={true} onClose={() => {}} />
+      <CallForwardingDialog
+        open={openModal}
+        onClose={() => {
+          setOpenModal(false);
+        }}
+      />
     </Dialog>
   );
 }

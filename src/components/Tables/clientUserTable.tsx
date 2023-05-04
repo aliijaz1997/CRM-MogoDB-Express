@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Button, IconButton, Box } from "@mui/material";
+import { Button, IconButton, Box, useMediaQuery } from "@mui/material";
 import {
   useDeleteUserMutation,
   useGetUsersQuery,
@@ -41,6 +41,8 @@ function CLientTable({ addModalOpen, handleCloseAddModal }: UsersTableProps) {
   const [filterModel, setFilterModel] = useState<GridFilterModel>({
     items: [],
   });
+
+  const isFullScreen = useMediaQuery("(min-width:1024px)");
 
   const { data, isLoading } = useGetUsersQuery({
     client: true,
@@ -141,7 +143,7 @@ function CLientTable({ addModalOpen, handleCloseAddModal }: UsersTableProps) {
     return clients.map((client, idx) => {
       return {
         id: client._id,
-        serialNumber: idx,
+        serialNumber: idx + page * pageSize + 1,
         name: client.name,
         createdAt: formatDateTime(client.createdAt as string),
         email: client.email,
@@ -175,6 +177,9 @@ function CLientTable({ addModalOpen, handleCloseAddModal }: UsersTableProps) {
           },
           "& .MuiDataGrid-columnHeader": {
             backgroundColor: "lightgrey",
+          },
+          "& .MuiDataGrid-virtualScroller": {
+            overflowX: isFullScreen ? "hidden" : "auto",
           },
           border: "1px solid rgba(224, 224, 224, 1)",
           borderRadius: "5px",

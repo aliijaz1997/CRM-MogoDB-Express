@@ -207,7 +207,7 @@ export default function CallLogTable() {
     return callLogs.map((callLog, idx) => {
       return {
         id: callLog._id,
-        serialNumber: idx,
+        serialNumber: idx + page * pageSize + 1,
         createdAt: formatDateTime(callLog.createdAt as string),
         duration: callLog.duration,
         type: callLog.type,

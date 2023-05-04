@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Box, Theme } from "@mui/material";
+import { Button, Box, Theme, useMediaQuery } from "@mui/material";
 import {
   useDeleteUserMutation,
   useGetUsersQuery,
@@ -33,6 +33,7 @@ function UsersTable() {
     items: [],
   });
 
+  const isFullScreen = useMediaQuery("(min-width:1024px)");
   const { data, isLoading } = useGetUsersQuery({
     client: false,
     page,
@@ -110,7 +111,7 @@ function UsersTable() {
     return admins.map((admins, idx) => {
       return {
         id: admins._id,
-        serialNumber: idx,
+        serialNumber: idx + page * pageSize + 1,
         name: admins.name,
         createdAt: formatDateTime(admins.createdAt as string),
         email: admins.email,
@@ -144,6 +145,9 @@ function UsersTable() {
           },
           "& .MuiDataGrid-columnHeader": {
             backgroundColor: "lightgrey",
+          },
+          "& .MuiDataGrid-virtualScroller": {
+            overflowX: isFullScreen ? "hidden" : "auto",
           },
           border: "1px solid rgba(224, 224, 224, 1)",
           borderRadius: "5px",
