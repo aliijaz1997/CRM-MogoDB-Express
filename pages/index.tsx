@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Head from "next/head";
 import { Box, Grid, Link, Paper, Typography } from "@mui/material";
 
@@ -10,18 +10,22 @@ import { useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { UserRole } from "../src/types";
 import IncomingCallDialog from "../src/components/Dial/incomingCall";
+import socket from "../src/utils/socket";
+import OnGoingCall from "../src/components/Dial/ongoing call";
+import DeclinedCallDialog from "../src/components/Dial/declineCall";
+import MiscallDialog from "../src/components/Dial/missedCall";
 
 export default function Home() {
+  const [openModal, setOpenModal] = React.useState(false);
+  const [caller, setCaller] = React.useState({ name: "", phoneNumber: "" });
+  const [receiver, setReceiver] = React.useState({ name: "", phoneNumber: "" });
+  const [response, setResponse] = useState("none");
+  const [timer, setTimer] = useState("00:00:00");
+
   const router = useRouter();
-  const { currentUser } = React.useContext(AuthContext);
+  const { currentUser, user } = React.useContext(AuthContext);
   const token = useSelector<RootState>((state) => state.auth.token);
-  const {
-    data: user,
-    isError,
-    isLoading,
-  } = useGetUserByIdQuery({
-    id: currentUser?.uid as string,
-  });
+
   React.useEffect(() => {
     token
       ? user?.role !== UserRole.Client
@@ -30,9 +34,39 @@ export default function Home() {
       : router.push("/login");
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, user?.role, token]);
+  }, [currentUser, user?.role, token, router]);
+  React.useEffect(() => {
+    if (socket) {
+      socket.on("call-receive", ({ from, to }) => {
+        setOpenModal(true);
+        setCaller(from);
+        setReceiver(to);
+      });
+      socket.on("call-accepted", (phone) => {
+        setResponse("accepted");
+        setOpenModal(false);
+      });
+      socket.on("call-rejected", ({ to, from }) => {
+        setResponse("declined");
+        setOpenModal(false);
+      });
+      socket.on("call-canceled", ({ to, from }) => {
+        setResponse("canceled");
+        setOpenModal(false);
+      });
+      socket.on("update-timer", (timerString) => {
+        setTimer(timerString);
+      });
+    }
+  }, [socket]);
 
-  if (isError || isLoading || !user) {
+  React.useEffect(() => {
+    if (user) {
+      socket.emit("add-user", user.phoneNumber);
+    }
+  }, [user]);
+
+  if (!user) {
     return <Loader />;
   }
 
@@ -111,9 +145,44 @@ export default function Home() {
           </Grid>
         </Paper>
         <IncomingCallDialog
-          open={false}
-          onClose={() => {}}
-          callerName="Admin"
+          open={openModal}
+          onClose={() => {
+            setOpenModal(false);
+          }}
+          callerName={caller.name}
+          handleAccept={() => {
+            socket.emit("accept-call", { to: receiver, from: caller });
+          }}
+          handleCancel={() => {
+            socket.emit("reject-call", { to: receiver, from: caller });
+          }}
+        />
+        <OnGoingCall
+          open={response === "accepted"}
+          callerName={caller.name}
+          receiverName={receiver.name}
+          time={timer}
+          onCancel={() => {
+            setResponse("none");
+          }}
+          onClose={() => {
+            setResponse("none");
+          }}
+        />
+        <DeclinedCallDialog
+          open={response === "declined"}
+          caller={caller.name}
+          receiver={receiver.name}
+          onClose={() => {
+            setResponse("none");
+          }}
+        />
+        <MiscallDialog
+          caller={caller.name}
+          onClose={() => {
+            setResponse("none");
+          }}
+          open={response === "canceled"}
         />
       </main>
     </>

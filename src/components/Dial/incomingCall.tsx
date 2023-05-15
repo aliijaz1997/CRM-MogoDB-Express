@@ -7,6 +7,7 @@ import {
   DialogActions,
   Button,
   styled,
+  Box,
 } from "@mui/material";
 import { green } from "@mui/material/colors";
 import CallRoundedIcon from "@mui/icons-material/CallRounded";
@@ -15,6 +16,8 @@ interface IncomingCallDialogProps {
   open: boolean;
   callerName: string;
   onClose: () => void;
+  handleAccept: () => void;
+  handleCancel: () => void;
 }
 
 const StyledCallIcon = styled(CallRoundedIcon)({
@@ -38,6 +41,8 @@ const IncomingCallDialog: React.FC<IncomingCallDialogProps> = ({
   open,
   callerName,
   onClose,
+  handleAccept,
+  handleCancel,
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -55,8 +60,18 @@ const IncomingCallDialog: React.FC<IncomingCallDialogProps> = ({
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Decline</Button>
-        <Button onClick={onClose} variant="contained" color="primary">
+        <Button
+          onClick={handleCancel}
+          variant="contained"
+          sx={{ color: "white", bgcolor: "red" }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleAccept}
+          variant="contained"
+          sx={{ color: "white", bgcolor: "green" }}
+        >
           Answer
         </Button>
       </DialogActions>

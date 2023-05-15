@@ -44,7 +44,7 @@ export default function Orders() {
         <TableBody>
           {callLogs.map((row, idx) => (
             <TableRow key={row._id}>
-              <TableCell>{idx}</TableCell>
+              <TableCell>{idx + 1}</TableCell>
               <TableCell>{formatDateTime(row.createdAt as string)}</TableCell>
               <TableCell>{row.type}</TableCell>
               <TableCell>{row.duration}</TableCell>

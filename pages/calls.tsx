@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Box, Button, Typography, Modal, IconButton } from "@mui/material";
 import {
   DataGrid,
@@ -33,6 +33,7 @@ import { toast } from "react-toastify";
 import { getSortParams } from "../src/helper/getSortParams";
 import { getFilterParams } from "../src/helper/getFilterParams";
 import DialDialog from "../src/components/Dial/dial";
+import socket from "../src/utils/socket";
 
 dayjs.extend(isBetween);
 
@@ -53,6 +54,12 @@ export default function CallLogTable() {
   });
 
   const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (user) {
+      socket.emit("add-user", user.phoneNumber);
+    }
+  }, [user]);
 
   const { data: callLogData, isLoading } = useGetCallLogsQuery({
     page,

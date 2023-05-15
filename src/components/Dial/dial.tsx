@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -15,6 +15,12 @@ import { validatePhoneNumber } from "../../helper/phoneValidation";
 import CallForwardingDialog from "./callForward";
 import { useGetUsersQuery } from "../../store/services/api";
 import Loader from "../loader";
+import socket from "../../utils/socket";
+import { AuthContext } from "../../context/authContext";
+import OnGoingCall from "./ongoing call";
+import DeclinedCallDialog from "./declineCall";
+import { toast } from "react-toastify";
+import NotAvailableDialog from "./notAvailable";
 
 interface Props {
   isOpen: boolean;
@@ -24,12 +30,42 @@ export default function DialDialog(props: Props) {
   const { isOpen, onClose } = props;
   const [phoneNumber, setPhoneNumber] = useState("");
   const [openModal, setOpenModal] = useState(false);
+  const [caller, setCaller] = React.useState({ name: "", phoneNumber: "" });
+  const [receiver, setReceiver] = React.useState({ name: "", phoneNumber: "" });
+  const [response, setResponse] = useState("none");
+  const [timer, setTimer] = useState("00:00:00");
+  const { user } = useContext(AuthContext);
 
   const { data, isLoading } = useGetUsersQuery({
     client: true,
   });
   const { users: clients } = data ?? {};
-  console.log(clients);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("call-accepted", ({ to, from }) => {
+        setOpenModal(false);
+        setResponse("accepted");
+        setCaller(from);
+        setReceiver(to);
+      });
+      socket.on("call-rejected", ({ to, from }) => {
+        setResponse("declined");
+        setOpenModal(false);
+        setCaller(from);
+        setReceiver(to);
+      });
+      socket.on("not-available", ({ to }) => {
+        setResponse("not-available");
+        setOpenModal(false);
+        setReceiver(to);
+      });
+      socket.on("update-timer", (timerString) => {
+        setTimer(timerString);
+      });
+    }
+  }, [socket]);
+
   const handleNumberButtonClick = (number: number) => {
     if (phoneNumber.length < 11) {
       setPhoneNumber(phoneNumber + number);
@@ -39,6 +75,20 @@ export default function DialDialog(props: Props) {
   const handleCallButtonClick = () => {
     if (phoneNumber.length === 11 && validatePhoneNumber(phoneNumber)) {
       setOpenModal(true);
+      socket.emit("call-to-client", {
+        to: {
+          name:
+            clients?.find((c) => c.phoneNumber === phoneNumber)?.name ||
+            "Unknown",
+          phoneNumber,
+        },
+        from: {
+          name: user?.name,
+          phoneNumber: user?.phoneNumber,
+        },
+      });
+    } else {
+      toast.warning("Please enter 11 char valid phone number");
     }
   };
 
@@ -50,7 +100,9 @@ export default function DialDialog(props: Props) {
 
   const handleBackspacePress = (event: { key: string }) => {
     if (event.key === "Backspace") {
-      setPhoneNumber((prevPhoneNumber) => prevPhoneNumber.slice(0, -1));
+      setPhoneNumber((prevPhoneNumber) =>
+        prevPhoneNumber.substring(0, prevPhoneNumber.length - 1)
+      );
     }
   };
   if (isLoading || !clients) return <Loader />;
@@ -198,6 +250,49 @@ export default function DialDialog(props: Props) {
         onClose={() => {
           setOpenModal(false);
         }}
+        onCallCancel={(e) => {
+          e.preventDefault();
+          socket.emit("cancel-call", {
+            to: {
+              name:
+                clients?.find((c) => c.phoneNumber === phoneNumber)?.name ||
+                "Unknown",
+              phoneNumber,
+            },
+            from: {
+              name: user?.name,
+              phoneNumber: user?.phoneNumber,
+            },
+          });
+          setOpenModal(false);
+        }}
+      />
+      <OnGoingCall
+        open={response === "accepted"}
+        callerName={caller.name}
+        receiverName={receiver.name}
+        time={timer}
+        onCancel={() => {
+          setResponse("none");
+        }}
+        onClose={() => {
+          setResponse("none");
+        }}
+      />
+      <DeclinedCallDialog
+        open={response === "declined"}
+        caller={caller.name}
+        receiver={receiver.name}
+        onClose={() => {
+          setResponse("none");
+        }}
+      />
+      <NotAvailableDialog
+        open={response === "not-available"}
+        onClose={() => {
+          setResponse("none");
+        }}
+        to={receiver}
       />
     </Dialog>
   );

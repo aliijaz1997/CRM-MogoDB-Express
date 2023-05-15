@@ -16,11 +16,13 @@ import { green } from "@mui/material/colors";
 interface CallForwardingDialogProps {
   open: boolean;
   onClose: () => void;
+  onCallCancel: (e: any) => void;
 }
 
 const CallForwardingDialog: React.FC<CallForwardingDialogProps> = ({
   open,
   onClose,
+  onCallCancel,
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -44,8 +46,8 @@ const CallForwardingDialog: React.FC<CallForwardingDialogProps> = ({
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant="contained" color="primary">
-          Finish
+        <Button onClick={onCallCancel} variant="contained" color="primary">
+          Cancel Call
         </Button>
       </DialogActions>
     </Dialog>
