@@ -5,11 +5,11 @@ const Schema = mongoose.Schema;
 const callLogSchema = new Schema({
   serialNumber: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now() },
-  duration: { type: Number, required: true },
+  duration: { type: String, required: true },
   type: { type: String, enum: ["incoming", "outgoing"], required: true },
   status: {
     type: String,
-    enum: ["pending", "completed", "cancelled"],
+    enum: ["pending", "completed", "cancelled", "missed"],
     default: "pending",
   },
   notes: { type: String },

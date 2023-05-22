@@ -30,6 +30,11 @@ const io = require("socket.io")(server, {
 });
 
 let onlineUsers = new Map();
+let callAcceptClients = [];
+let callForwardToClients = [];
+let timerStartUsers = [];
+let activeTimers = {};
+let timeIntervalReference = {};
 io.on("connection", (socket) => {
   console.log("user connected");
   socket.on("add-user", (phoneNumber) => {
@@ -38,48 +43,67 @@ io.on("connection", (socket) => {
   });
 
   socket.on("call-to-client", ({ to, from }) => {
-    const receiver = onlineUsers.get(to.phoneNumber);
     const caller = onlineUsers.get(from.phoneNumber);
-    if (receiver) {
-      socket.to(receiver).emit("call-receive", { to, from });
-    } else {
-      io.to(caller).emit("not-available", { to });
-    }
+    callForwardToClients.push({ phoneNumber: to.phoneNumber, name: to.name });
+
+    callForwardToClients.forEach((client) => {
+      const receiver = onlineUsers.get(client.phoneNumber);
+      if (receiver) {
+        socket.to(receiver).emit("call-receive", { to, from });
+      } else {
+        io.to(caller).emit("not-available", { to: client });
+      }
+    });
   });
 
   socket.on("accept-call", ({ to, from }) => {
-    console.log(`User ${to.name} has accepted the call from ${from.name}`);
     const caller = onlineUsers.get(from.phoneNumber);
-    const receiver = onlineUsers.get(to.phoneNumber);
 
-    io.to(caller).emit("call-accepted", {
-      to,
-      from,
-    });
-    io.to(receiver).emit("call-accepted", {
-      to,
-      from,
-    });
-    const startTime = dayjs();
-    timer = setInterval(() => {
-      const currentTime = dayjs();
-      const diffInSeconds = Math.floor((currentTime - startTime) / 1000);
-      const hours = Math.floor(diffInSeconds / 3600);
-      const minutes = Math.floor((diffInSeconds - hours * 3600) / 60);
-      const seconds = diffInSeconds - hours * 3600 - minutes * 60;
-      const timeString = `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    callAcceptClients.push({ phoneNumber: to.phoneNumber, name: to.name });
+    callForwardToClients = callForwardToClients.filter(
+      (c) => c.phoneNumber !== to.phoneNumber
+    );
 
-      io.to(caller).emit("update-timer", timeString);
-      io.to(receiver).emit("update-timer", timeString);
-    }, 1000);
+    callAcceptClients.forEach((client) => {
+      const receiver = onlineUsers.get(client.phoneNumber);
+      const isAlreadyTimerStarted = timerStartUsers.find(
+        (u) => u.phoneNumber === client.phoneNumber
+      );
+      if (!isAlreadyTimerStarted) {
+        io.to(caller).emit("call-accepted", {
+          to: callAcceptClients,
+          from,
+        });
+        io.to(receiver).emit("call-accepted", {
+          to: client,
+          from,
+        });
+        const startTime = dayjs();
+        timeIntervalReference[client.phoneNumber] = setInterval(() => {
+          const currentTime = dayjs();
+          const diffInSeconds = Math.floor((currentTime - startTime) / 1000);
+          const hours = Math.floor(diffInSeconds / 3600);
+          const minutes = Math.floor((diffInSeconds - hours * 3600) / 60);
+          const seconds = diffInSeconds - hours * 3600 - minutes * 60;
+          const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+            .toString()
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+          io.to(receiver).emit("update-timer", timeString);
+          activeTimers = { ...activeTimers, [client.phoneNumber]: timeString };
+          io.to(caller).emit("update-timer", activeTimers);
+        }, 1000);
+        timerStartUsers.push(client);
+      }
+    });
   });
 
   socket.on("reject-call", ({ to, from }) => {
-    console.log(`User ${to.name} has rejected the call from ${from.name}`);
     const caller = onlineUsers.get(from.phoneNumber);
     const receiver = onlineUsers.get(to.phoneNumber);
+    callForwardToClients = callForwardToClients.filter(
+      (c) => c.phoneNumber !== to.phoneNumber
+    );
     io.to(caller).emit("call-rejected", {
       to,
       from,
@@ -95,6 +119,34 @@ io.on("connection", (socket) => {
       to,
       from,
     });
+  });
+  socket.on("end-call", ({ to, from }) => {
+    const receiver = onlineUsers.get(to.phoneNumber);
+    const caller = onlineUsers.get(from.phoneNumber);
+    callAcceptClients = callAcceptClients.filter(
+      (c) => c.phoneNumber !== to.phoneNumber
+    );
+
+    timerStartUsers = timerStartUsers.filter(
+      (c) => c.phoneNumber !== to.phoneNumber
+    );
+    const callDuration = activeTimers[to.phoneNumber];
+    const interval = timeIntervalReference[to.phoneNumber];
+    if (interval) {
+      clearInterval(interval);
+    }
+    io.to(receiver).emit("call-ended", {
+      to,
+      from,
+      duration: callDuration,
+    });
+    io.to(caller).emit("call-ended", {
+      to,
+      from,
+    });
+
+    delete activeTimers[to.phoneNumber];
+    delete timeIntervalReference[to.phoneNumber];
   });
 });
 

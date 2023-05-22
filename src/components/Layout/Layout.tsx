@@ -24,8 +24,10 @@ import {
   Call,
   ChevronLeft,
   GroupAdd,
+  HomeMini,
   Logout,
   ManageAccounts,
+  RoomService,
   RotateLeft,
 } from "@mui/icons-material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -45,6 +47,7 @@ import NotificationDropDown from "../Notifications/notification";
 import ProfileDropdown from "../Profile/profileDropDown";
 import Logo from "../../../public/crm-browser-icon.svg";
 import Image from "next/image";
+import ClientCalling from "../Client/clientCallingPopup";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -239,6 +242,62 @@ export default function Layout(props: LayoutProps) {
               <ListItemText primary="Clients" />
             </ListItemButton>
           )}
+          {user?.role === UserRole.Client && (
+            <ListItemButton
+              onClick={() => {
+                router.push("/about");
+              }}
+              sx={{
+                color: showSelectedNav("/about")
+                  ? "text.primary"
+                  : "text.secondary",
+                "& .MuiListItemIcon-root": {
+                  color: "text.secondary",
+                },
+                bgcolor: showSelectedNav("/about") ? "secondary.light" : "",
+                "&:hover": {
+                  cursor: "pointer",
+                  "& .MuiListItemIcon-root": {
+                    // styles for the ListItemIcon when it's a child of the ListItemButton and is hovered over
+                    color: "text.primary",
+                  },
+                },
+              }}
+            >
+              <ListItemIcon>
+                <HomeMini />
+              </ListItemIcon>
+              <ListItemText primary="About" />
+            </ListItemButton>
+          )}
+          {user?.role === UserRole.Client && (
+            <ListItemButton
+              onClick={() => {
+                router.push("/services");
+              }}
+              sx={{
+                color: showSelectedNav("/services")
+                  ? "text.primary"
+                  : "text.secondary",
+                "& .MuiListItemIcon-root": {
+                  color: "text.secondary",
+                },
+                bgcolor: showSelectedNav("/services") ? "secondary.light" : "",
+                "&:hover": {
+                  cursor: "pointer",
+                  "& .MuiListItemIcon-root": {
+                    // styles for the ListItemIcon when it's a child of the ListItemButton and is hovered over
+                    color: "text.primary",
+                  },
+                },
+              }}
+            >
+              <ListItemIcon>
+                <RoomService />
+              </ListItemIcon>
+              <ListItemText primary="Services" />
+            </ListItemButton>
+          )}
           {user?.role !== UserRole.Client && (
             <ListItemButton
               onClick={() => {
@@ -376,6 +435,7 @@ export default function Layout(props: LayoutProps) {
             </Container>
           </Box>
         </Container>
+        {user?.role === UserRole.Client && <ClientCalling />}
       </Box>
     </Box>
   );

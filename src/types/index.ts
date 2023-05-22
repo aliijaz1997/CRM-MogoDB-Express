@@ -22,6 +22,7 @@ export enum Status {
   PENDING = "pending",
   COMPLETED = "completed",
   CANCELLED = "cancelled",
+  MISSED = "missed",
 }
 
 export interface Notification {
@@ -39,7 +40,7 @@ export interface ErrorResponse {
 export interface CallLog {
   _id: string;
   createdAt: string | Date;
-  duration: number;
+  duration: string;
   type: "incoming" | "outgoing";
   notes: string;
   serialNumber: number;
