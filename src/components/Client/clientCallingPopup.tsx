@@ -13,6 +13,14 @@ export default function ClientCalling() {
   const [caller, setCaller] = React.useState({ name: "", phoneNumber: "" });
   const [response, setResponse] = useState("none");
   const [timer, setTimer] = useState("00:00:00");
+  const [newCaller, setNewCaller] = useState({
+    name: "",
+    phoneNumber: "",
+  });
+  const [transferCall, setTransferCall] = useState(false);
+  const [totalClients, setClients] = useState<
+    { name: string; phoneNumber: string }[]
+  >([]);
 
   const { user } = React.useContext(AuthContext);
 
@@ -22,7 +30,7 @@ export default function ClientCalling() {
         setOpenModal(true);
         setCaller(from);
       });
-      socket.on("call-accepted", (phone) => {
+      socket.on("call-accepted", () => {
         setResponse("accepted");
         setOpenModal(false);
       });
@@ -38,15 +46,27 @@ export default function ClientCalling() {
         setResponse("canceled");
         setOpenModal(false);
       });
-      socket.on("update-timer", (timerString) => {
-        setTimer(timerString);
+      socket.on("update-timer", ({ timeString, clients }) => {
+        setTimer(timeString);
+        setClients(clients);
+      });
+      socket.on("call-transferred-started", ({ from }) => {
+        setCaller(from);
+        setNewCaller({ name: "", phoneNumber: "" });
+        setTransferCall(false);
+      });
+
+      socket.on("transfer-accept-request", ({ to, from }) => {
+        setCaller(from);
+        setNewCaller(to);
+        setTransferCall(true);
       });
     }
   }, [socket]);
 
   React.useEffect(() => {
     if (user) {
-      socket.emit("add-user", user.phoneNumber);
+      socket.emit("add-client", user.phoneNumber);
     }
   }, [user]);
 
@@ -80,7 +100,12 @@ export default function ClientCalling() {
         open={response === "accepted"}
         callerName={caller.name}
         receiverName={user.name}
+        totalClients={(() => {
+          return totalClients.filter((c) => c.phoneNumber !== user.phoneNumber);
+        })()}
         time={timer}
+        transferCall={transferCall}
+        newCallerName={newCaller.name}
         onCancel={() => {
           socket.emit("end-call", {
             to: { name: user.name, phoneNumber: user.phoneNumber },

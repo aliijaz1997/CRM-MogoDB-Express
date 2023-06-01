@@ -57,7 +57,7 @@ export default function CallLogTable() {
 
   useEffect(() => {
     if (user) {
-      socket.emit("add-user", user.phoneNumber);
+      socket.emit("add-admin", user.phoneNumber);
     }
   }, [user]);
 

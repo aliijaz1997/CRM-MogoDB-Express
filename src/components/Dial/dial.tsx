@@ -20,11 +20,13 @@ import {
 import Loader from "../loader";
 import socket from "../../utils/socket";
 import { AuthContext } from "../../context/authContext";
-import OnGoingCall from "./ongoing call";
+import OnGoingCall from "./ongoingCall";
 import DeclinedCallDialog from "./declineCall";
 import { toast } from "react-toastify";
 import NotAvailableDialog from "./notAvailable";
 import { Status } from "../../types";
+import TransferDialog from "./transferRequest";
+import TransferSuccessDialog from "./transferSucess";
 
 interface Props {
   isOpen: boolean;
@@ -35,16 +37,17 @@ interface Clients {
   name: string;
   phoneNumber: string;
 }
+
+const initialUser = { name: "", phoneNumber: "" };
 export default function DialDialog(props: Props) {
   const { isOpen, onClose } = props;
   const [phoneNumber, setPhoneNumber] = useState("");
   const [openModal, setOpenModal] = useState(false);
-  const [caller, setCaller] = React.useState({ name: "", phoneNumber: "" });
+  const [caller, setCaller] = React.useState(initialUser);
+  const [newCaller, setNewCaller] = React.useState(initialUser);
   const [receivers, setReceivers] = React.useState<Clients[]>();
-  const [rejectedClient, setRejectClient] = React.useState({
-    name: "",
-    phoneNumber: "",
-  });
+  const [rejectedClient, setRejectClient] = React.useState(initialUser);
+  const [callTransferred, setCallTransferred] = useState(false);
   const [response, setResponse] = useState("none");
   const [timer, setTimer] = useState<Record<string, string>>();
   const { user } = useContext(AuthContext);
@@ -103,6 +106,25 @@ export default function DialDialog(props: Props) {
       });
       socket.on("update-timer", (timers) => {
         setTimer(timers);
+      });
+
+      socket.on("transfer-accept-request", ({ to, from }) => {
+        setNewCaller(to);
+        setCaller(from);
+      });
+
+      socket.on("call-transferred-success", ({ caller, newCaller }) => {
+        setCallTransferred(true);
+        setCaller(initialUser);
+        setTimer({});
+        setReceivers([]);
+      });
+
+      socket.on("call-transferred-started", ({ receivers, newCaller }) => {
+        setCaller(newCaller);
+        setReceivers(receivers);
+        setResponse("accepted");
+        setNewCaller(initialUser);
       });
     }
   }, [socket]);
@@ -336,6 +358,21 @@ export default function DialDialog(props: Props) {
         }}
         to={receiver}
       /> */}
+      <TransferDialog
+        open={!!newCaller.name}
+        caller={caller}
+        newCaller={newCaller}
+        socket={socket}
+        onClose={() => {}}
+      />
+      <TransferSuccessDialog
+        open={callTransferred}
+        onClose={() => {
+          setCallTransferred(false);
+          setNewCaller(initialUser);
+        }}
+        newCaller={newCaller.name}
+      />
     </Dialog>
   );
 }
